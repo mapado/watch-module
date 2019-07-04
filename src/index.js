@@ -21,6 +21,7 @@ const theme = {
   // cyan: '#78dce8',
 };
 
+/* ================== logging ================== */
 const cwd = process.cwd();
 const argv = minimist(process.argv.slice(2));
 
@@ -40,7 +41,26 @@ const logModuleName = chalk.hex(theme.moduleName);
 
 debug('arguments: ', argv);
 
-function onChange(moduleName, path) {
+const moduleNameByPath = {};
+function getModuleNameForPath(path) {
+  if (!moduleNameByPath[path]) {
+      moduleNameByPath[path] = require(`${cwd}/${path}/package.json`).name;
+  }
+
+  return moduleNameByPath[path];
+}
+
+
+/* ================== build ================== */
+const changedModules = new Set();
+function buildAll() {
+  changedModules.forEach(buildPath);
+  changedModules.clear();
+}
+
+function buildPath(path) {
+  const moduleName = getModuleNameForPath(path);
+  debug(moduleName);
   const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
   const command = `cd ${path} && ${yarnOrNpm} build && mkdir -p ${cwd}/node_modules/${moduleName} && rsync -r ${path}/* ${cwd}/node_modules/${moduleName} --exclude=.git --exclude=node_modules`;
@@ -61,24 +81,35 @@ function onChange(moduleName, path) {
   );
 }
 
-const debouncedOnChange = debounce(onChange, 200);
+/* ================== debounce & events ================== */
+const debouncedOnChangeAll = debounce(buildAll, 200);
 
+function onChange(modulePath, event, path) {
+  const moduleName = getModuleNameForPath(modulePath);
+  log(logModuleName(moduleName), `Change detected: ${event} ${path}`);
+
+  changedModules.add(modulePath);
+  debouncedOnChangeAll();
+}
+
+/* ================== main ================== */
 function main() {
-  const [ modulePath ] = argv._;
+  const modulePaths = argv._;
 
-  if (!modulePath) {
+  if (modulePaths.length === 0) {
     console.error("You must specify a module's path !!!");
     return;
   }
 
+  const srcPaths = modulePaths.map(path => `${path}/src`);
+
   // One-liner for current directory, ignores .dotfiles
   chokidar
-    .watch(`${modulePath}/src`, { ignored: /(^|[\/\\])\.[^\.\/]/ })
+    .watch(srcPaths, { ignored: /(^|[\/\\])\.[^\.\/]/ })
     .on('all', (event, path) => {
-      const moduleName = require(`${cwd}/${modulePath}/package.json`).name;
+      const modulePath = modulePaths.find(tmpPath => path.startsWith(`${tmpPath}/`));
 
-      log(logModuleName(moduleName), `Change detected: ${event} ${path}`);
-      debouncedOnChange(moduleName, modulePath);
+      onChange(modulePath, event, path);
     });
 }
 

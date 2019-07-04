@@ -60,7 +60,8 @@ function buildAll() {
 
 function buildPath(path) {
   const moduleName = getModuleNameForPath(path);
-  debug(moduleName);
+  log(logModuleName(moduleName), `Change detected`);
+
   const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
   const command = `cd ${path} && ${yarnOrNpm} build && mkdir -p ${cwd}/node_modules/${moduleName} && rsync -r ${path}/* ${cwd}/node_modules/${moduleName} --exclude=.git --exclude=node_modules`;
@@ -84,10 +85,7 @@ function buildPath(path) {
 /* ================== debounce & events ================== */
 const debouncedOnChangeAll = debounce(buildAll, 200);
 
-function onChange(modulePath, event, path) {
-  const moduleName = getModuleNameForPath(modulePath);
-  log(logModuleName(moduleName), `Change detected: ${event} ${path}`);
-
+function onChange(modulePath) {
   changedModules.add(modulePath);
   debouncedOnChangeAll();
 }
@@ -109,7 +107,7 @@ function main() {
     .on('all', (event, path) => {
       const modulePath = modulePaths.find(tmpPath => path.startsWith(`${tmpPath}/`));
 
-      onChange(modulePath, event, path);
+      onChange(modulePath);
     });
 }
 

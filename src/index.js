@@ -64,7 +64,7 @@ function buildPath(path) {
 
   const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
-  const command = `cd ${path} && ${yarnOrNpm} build && mkdir -p ${cwd}/node_modules/${moduleName} && rsync -r ${path}/* ${cwd}/node_modules/${moduleName} --exclude=.git --exclude=node_modules`;
+  const command = `cd ${path} && ${yarnOrNpm} build && mkdir -p ${cwd}/node_modules/${moduleName} && rsync -r ./* ${cwd}/node_modules/${moduleName} --exclude=.git --exclude=node_modules`;
 
   debug(`Executing command: "${command}"`);
 

@@ -1,9 +1,9 @@
 {
   "name": "watch-module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Javascript module watcher to work locally with package",
   "bin": {
-      "watch-module": "bin/watch-module.js"
+    "watch-module": "bin/watch-module.js"
   },
   "repository": "https://github.com/mapado/watch-module",
   "license": "MIT",

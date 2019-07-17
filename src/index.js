@@ -1,4 +1,5 @@
 const { exec } = require('child_process');
+const fs = require('fs-extra');
 const debounce = require('debounce');
 const chokidar = require('chokidar');
 const minimist = require('minimist');
@@ -50,7 +51,6 @@ function getModuleNameForPath(path) {
   return moduleNameByPath[path];
 }
 
-
 /* ================== build ================== */
 const changedModules = new Set();
 function buildAll() {
@@ -64,22 +64,44 @@ function buildPath(path) {
 
   const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
-  const command = `cd ${path} && ${yarnOrNpm} build && mkdir -p ${cwd}/node_modules/${moduleName} && rsync -r ./* ${cwd}/node_modules/${moduleName} --exclude=.git --exclude=node_modules`;
-
-  debug(`Executing command: "${command}"`);
-
+  debug(`Build "${moduleName}" package`);
+  const command = `${yarnOrNpm} run build`;
   exec(
     command,
-    { maxBuffer: 1024 * 500 },
+    {
+      maxBuffer: 1024 * 500,
+      cwd: path,
+    },
     (err, stdout, stderr) => {
       if (err) {
-        console.error(err);
-        return;
+        console.log(err);
       }
-
-      log(logModuleName(moduleName), chalk.hex(theme.success)('build done'));
     }
-  );
+  )
+
+  debug(`Create module directory for "${moduleName}" and copy files`);
+  const modulePath = `${cwd}/node_modules/${moduleName}`;
+  fs
+    .ensureDir(modulePath)
+    .then(() => fs
+      .copy(
+        path,
+        modulePath,
+        {
+          filter: (src, dest) => {
+            const srcAppendSlash = `${src}/`;
+
+            return !srcAppendSlash.startsWith(`${path}/node_modules/`)
+              && !srcAppendSlash.startsWith(`${path}/.git/`)
+          }
+        }
+      )
+    )
+    .then(() => {
+      log(logModuleName(moduleName), chalk.hex(theme.success)('build done'));
+    })
+    .catch(console.error);
+  ;
 }
 
 /* ================== debounce & events ================== */

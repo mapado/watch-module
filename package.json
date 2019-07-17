@@ -11,6 +11,7 @@
     "chalk": "^2.4.2",
     "chokidar": "^3.0.1",
     "debounce": "^1.2.0",
+    "fs-extra": "^8.1.0",
     "has-yarn": "^2.1.0",
     "minimist": "^1.2.0"
   }

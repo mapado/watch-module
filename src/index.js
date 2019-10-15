@@ -51,6 +51,18 @@ function getModuleNameForPath(path) {
   return moduleNameByPath[path];
 }
 
+function getModuleCommandForPath(path) {
+  const packageJson = require(`${cwd}/${path}/package.json`);
+  if (packageJson['watch-module'] && packageJson['watch-module']['command']) {
+    return packageJson['watch-module']['command'];
+  }
+
+  // no command override found
+  const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
+
+  return `${yarnOrNpm} run build`;
+}
+
 /* ================== build ================== */
 const changedModules = new Set();
 function buildAll() {
@@ -65,7 +77,8 @@ function buildPath(path) {
   const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
   debug(`Build "${moduleName}" package`);
-  const command = `${yarnOrNpm} run build`;
+  const command = getModuleCommandForPath(path);
+  debug(`Command is "${command}"`);
   exec(
     command,
     {

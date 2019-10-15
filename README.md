@@ -20,6 +20,22 @@ watch-modules does support multiple modules:
 npx watch-module /path/to/my/module ../my-other-module
 ```
 
+### Configuration
+
+watch-module do use `yarn|npm run build` by default, but you can override this command by configuring your `package.json` file:
+
+```json
+{
+  "name": "my package",
+  "scripts": {
+      "build:prod": "touch build.js"
+  },
+  "watch-module": {
+      "command": "yarn run build:prod"
+  }
+}
+```
+
 ## Alternatives
 
 [npm link | yarn link] : it does work fine until you have dependencies, etc. in your package.

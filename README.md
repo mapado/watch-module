@@ -20,6 +20,14 @@ watch-modules does support multiple modules:
 npx watch-module /path/to/my/module ../my-other-module
 ```
 
+### Using rsync
+
+watch-modules can use rsync on compatible systems:
+
+```sh
+npx watch-module /path/to/my/module --mode=rsync
+```
+
 ### Configuration
 
 watch-module do use `yarn|npm run build` by default, but you can override this command by configuring your `package.json` file:

@@ -38,9 +38,12 @@ const log = (...args) => {
   console.log(logDate(),  ...args);
 }
 
+const mode = argv.mode === 'rsync' ? argv.mode : 'copy';
+
 const logModuleName = chalk.hex(theme.moduleName);
 
 debug('arguments: ', argv);
+log(logModuleName('watch-module'), `${mode} mode`);
 
 const moduleNameByPath = {};
 function getModuleNameForPath(path) {
@@ -70,11 +73,33 @@ function buildAll() {
   changedModules.clear();
 }
 
+function copy(path, modulePath) {
+  return fs.copy(path, modulePath, {
+    filter: (src, dest) => {
+      const srcAppendSlash = `${src}/`;
+
+      return (
+        !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
+        !srcAppendSlash.startsWith(`${path}/.git/`)
+      );
+    }
+  });
+}
+
+function sync(path, modulePath) {
+  const Rsync = require('rsync');
+  const rsync = new Rsync()
+    .source(`${path}/*`)
+    .destination(modulePath)
+    .patterns(['-.git', '-node_modules'])
+    .flags('r');
+  return rsync.execute();
+}
+
+
 function buildPath(path) {
   const moduleName = getModuleNameForPath(path);
   log(logModuleName(moduleName), `Change detected`);
-
-  const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
 
   debug(`Build "${moduleName}" package`);
   const command = getModuleCommandForPath(path);
@@ -96,21 +121,13 @@ function buildPath(path) {
   const modulePath = `${cwd}/node_modules/${moduleName}`;
   fs
     .ensureDir(modulePath)
-    .then(() => fs
-      .copy(
-        path,
-        modulePath,
-        {
-          filter: (src, dest) => {
-            const srcAppendSlash = `${src}/`;
-
-            return !srcAppendSlash.startsWith(`${path}/node_modules/`)
-              && !srcAppendSlash.startsWith(`${path}/.git/`)
-          }
-        }
-      )
-    )
     .then(() => {
+      if (mode === 'copy') {
+        return copy(path, modulePath);
+      }
+      return sync(path, modulePath);
+    })
+    .then((res) => {
       log(logModuleName(moduleName), chalk.hex(theme.success)('build done'));
     })
     .catch(console.error);

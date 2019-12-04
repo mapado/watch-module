@@ -177,6 +177,11 @@ readdirp@^3.0.2:
   dependencies:
     picomatch "^2.0.4"
 
+rsync@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/rsync/-/rsync-0.6.1.tgz#3681a0098bd8750448f8bf9da1fee09f7763742b"
+  integrity sha1-NoGgCYvYdQRI+L+dof7gn3djdCs=
+
 supports-color@^5.3.0:
   version "5.5.0"
   resolved "http://npm.mapado.net:4873/supports-color/-/supports-color-5.5.0.tgz#e2e69a44ac8772f78a1ec0b35b689df6530efc8f"

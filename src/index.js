@@ -88,33 +88,32 @@ function buildPath(path) {
     (err, stdout, stderr) => {
       if (err) {
         console.log(err);
+        return;
       }
+      debug(`Create module directory for "${moduleName}" and copy files`);
+      const modulePath = `${cwd}/node_modules/${moduleName}`;
+      return fs.ensureDir(modulePath)
+        .then(() =>
+          fs.copy(path, modulePath, {
+            filter: (src, dest) => {
+              const srcAppendSlash = `${src}/`;
+
+              return (
+                !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
+                !srcAppendSlash.startsWith(`${path}/.git/`)
+              );
+            }
+          })
+        )
+        .then(() => {
+          log(
+            logModuleName(moduleName),
+            chalk.hex(theme.success)('build done')
+          );
+        })
+        .catch(console.error);
     }
   )
-
-  debug(`Create module directory for "${moduleName}" and copy files`);
-  const modulePath = `${cwd}/node_modules/${moduleName}`;
-  fs
-    .ensureDir(modulePath)
-    .then(() => fs
-      .copy(
-        path,
-        modulePath,
-        {
-          filter: (src, dest) => {
-            const srcAppendSlash = `${src}/`;
-
-            return !srcAppendSlash.startsWith(`${path}/node_modules/`)
-              && !srcAppendSlash.startsWith(`${path}/.git/`)
-          }
-        }
-      )
-    )
-    .then(() => {
-      log(logModuleName(moduleName), chalk.hex(theme.success)('build done'));
-    })
-    .catch(console.error);
-  ;
 }
 
 /* ================== debounce & events ================== */

@@ -5,6 +5,10 @@
   "bin": {
     "watch-module": "bin/watch-module.js"
   },
+  "scripts": {
+      "build": "tsc --build tsconfig.json",
+      "prepublishOnly": "tsc --build tsconfig.json"
+  },
   "repository": "https://github.com/mapado/watch-module",
   "license": "MIT",
   "dependencies": {
@@ -14,5 +18,12 @@
     "fs-extra": "^8.1.0",
     "has-yarn": "^2.1.0",
     "minimist": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/debounce": "^1.2.0",
+    "@types/fs-extra": "^8.0.0",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^12.7.2",
+    "typescript": "^3.5.3"
   }
 }

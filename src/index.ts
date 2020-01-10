@@ -1,17 +1,17 @@
-const { exec } = require('child_process');
-const fs = require('fs-extra');
-const debounce = require('debounce');
-const chokidar = require('chokidar');
-const minimist = require('minimist');
-const chalk = require('chalk');
-const process = require('process');
-const hasYarn = require('has-yarn');
+import { exec } from 'child_process';
+import fs from 'fs-extra';
+import nodeProcess from 'process';
+import debounce from 'debounce';
+import chokidar from 'chokidar';
+import minimist from 'minimist';
+import chalk from 'chalk';
+import hasYarn from 'has-yarn';
 
-const theme = {
-  success: '#a9dc76',
-  moduleName: '#ab9df2',
-  date: '#808080',
-  debug: '#ffd866',
+enum Theme {
+  success = '#a9dc76',
+  moduleName = '#ab9df2',
+  date = '#808080',
+  debug = '#ffd866',
 
   // colors are taken from https://www.monokai.pro/
   // magenta: '#ff6188',
@@ -23,27 +23,27 @@ const theme = {
 };
 
 /* ================== logging ================== */
-const cwd = process.cwd();
-const argv = minimist(process.argv.slice(2));
+const cwd = nodeProcess.cwd();
+const argv = minimist(nodeProcess.argv.slice(2)).filter((a: string|undefined) => a);
 
-const logDate = () => chalk.hex(theme.date)(`[${new Date().toISOString()}]`);
+const logDate = () => chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
 
-const debug = (...args) => {
+const debug = (...args: string[]) => {
   if (argv.v || argv.verbose) {
-    console.debug(logDate(),  chalk.hex(theme.debug)('DEBUG'), ...args);
+    console.debug(logDate(),  chalk.hex(Theme.debug)('DEBUG'), ...args);
   }
 }
 
-const log = (...args) => {
+const log = (...args: string[]) => {
   console.log(logDate(),  ...args);
 }
 
-const logModuleName = chalk.hex(theme.moduleName);
+const logModuleName = chalk.hex(Theme.moduleName);
 
 debug('arguments: ', argv);
 
-const moduleNameByPath = {};
-function getModuleNameForPath(path) {
+const moduleNameByPath: {[key:string]: string} = {};
+function getModuleNameForPath(path: string): string {
   if (!moduleNameByPath[path]) {
       moduleNameByPath[path] = require(`${cwd}/${path}/package.json`).name;
   }
@@ -51,7 +51,7 @@ function getModuleNameForPath(path) {
   return moduleNameByPath[path];
 }
 
-function getModuleCommandForPath(path) {
+function getModuleCommandForPath(path: string): string {
   const packageJson = require(`${cwd}/${path}/package.json`);
   if (packageJson['watch-module'] && packageJson['watch-module']['command']) {
     return packageJson['watch-module']['command'];
@@ -64,13 +64,13 @@ function getModuleCommandForPath(path) {
 }
 
 /* ================== build ================== */
-const changedModules = new Set();
-function buildAll() {
+const changedModules: Set<string> = new Set();
+function buildAll(): void {
   changedModules.forEach(buildPath);
   changedModules.clear();
 }
 
-function buildPath(path) {
+function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(logModuleName(moduleName), `Change detected`);
 
@@ -95,7 +95,7 @@ function buildPath(path) {
       return fs.ensureDir(modulePath)
         .then(() =>
           fs.copy(path, modulePath, {
-            filter: (src, dest) => {
+          filter: (src: string, dest: string) => {
               const srcAppendSlash = `${src}/`;
 
               return (
@@ -106,10 +106,7 @@ function buildPath(path) {
           })
         )
         .then(() => {
-          log(
-            logModuleName(moduleName),
-            chalk.hex(theme.success)('build done')
-          );
+            log(logModuleName(moduleName), chalk.hex(Theme.success)('build done'));
         })
         .catch(console.error);
     }
@@ -119,13 +116,13 @@ function buildPath(path) {
 /* ================== debounce & events ================== */
 const debouncedOnChangeAll = debounce(buildAll, 200);
 
-function onChange(modulePath) {
+function onChange(modulePath: string): void {
   changedModules.add(modulePath);
   debouncedOnChangeAll();
 }
 
 /* ================== main ================== */
-function main() {
+function main(): void {
   const modulePaths = argv._;
 
   if (modulePaths.length === 0) {
@@ -133,13 +130,13 @@ function main() {
     return;
   }
 
-  const srcPaths = modulePaths.map(path => `${path}/src`);
+  const srcPaths = modulePaths.map((path: string) => `${path}/src`);
 
   // One-liner for current directory, ignores .dotfiles
   chokidar
     .watch(srcPaths, { ignored: /(^|[\/\\])\.[^\.\/]/ })
-    .on('all', (event, path) => {
-      const modulePath = modulePaths.find(tmpPath => path.startsWith(`${tmpPath}/`));
+    .on('all', (event: any, path: string) => {
+      const modulePath = modulePaths.find((tmpPath: string) => path.startsWith(`${tmpPath}/`));
 
       onChange(modulePath);
     });

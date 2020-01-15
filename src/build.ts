@@ -37,6 +37,9 @@ function getModuleCommandForPath(path: string): string {
   return `${yarnOrNpm} run build`;
 }
 
+const getNodeModulepath = (moduleName: string): string =>
+  `${cwd}/node_modules/${moduleName}`;
+
 /**
  * Trigger a build of the package
  */
@@ -59,7 +62,13 @@ export function buildPath(path: string): void {
       }
 
       debug(`Create module directory for "${moduleName}" and copy files`);
-      const modulePath = `${cwd}/node_modules/${moduleName}`;
+      const modulePath = getNodeModulepath(moduleName);
+
+      // copy dir to backup version
+      if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
+        fs.copySync(modulePath, `${modulePath}.bak`);
+      }
+
       return fs
         .ensureDir(modulePath)
         .then(() =>
@@ -83,6 +92,28 @@ export function buildPath(path: string): void {
           log(moduleName, chalk.hex(Theme.success)('build done'));
         })
         .catch(console.error);
+    }
+  );
+}
+
+export function restoreOldDirectories(pathList: string[]): Promise<void>[] {
+  return pathList.map(
+    (path: string): Promise<void> => {
+      const moduleName = getModuleNameForPath(path);
+      const nodePath = getNodeModulepath(moduleName);
+      const nodePathBak = `${nodePath}.bak`;
+
+      if (
+        !fs.existsSync(nodePathBak) ||
+        !fs.statSync(nodePathBak).isDirectory()
+      ) {
+        return Promise.resolve();
+      }
+
+      return fs
+        .remove(nodePath)
+        .then(() => fs.copy(nodePathBak, nodePath))
+        .then(() => fs.remove(nodePathBak));
     }
   );
 }

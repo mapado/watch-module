@@ -1,9 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## 1.2.0
 
 ### Added
 
+- Saves the watched node_modules directory on start and restore its content when the program exit
 - Add a `IS_UNDER_WATCH_MODULE` file to help debugging
 
 ### Changed

@@ -1,7 +1,8 @@
+import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
 import { debug } from './logging';
-import { buildPath } from './build';
+import { buildPath, restoreOldDirectories } from './build';
 import argv from './argv';
 
 function main(): void {
@@ -52,6 +53,12 @@ function main(): void {
         onChange(modulePath);
       }
     );
+
+  process.on('SIGINT', () => {
+    Promise.all(restoreOldDirectories(modulePaths)).then(() => {
+      process.exit();
+    });
+  });
 }
 
 main();

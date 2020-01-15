@@ -6,8 +6,9 @@
     "watch-module": "bin/watch-module.js"
   },
   "scripts": {
-      "build": "tsc --build tsconfig.json",
-      "prepublishOnly": "tsc --build tsconfig.json"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "build": "tsc --build tsconfig.json",
+    "prepublishOnly": "tsc --build tsconfig.json"
   },
   "repository": "https://github.com/mapado/watch-module",
   "license": "MIT",
@@ -24,6 +25,11 @@
     "@types/fs-extra": "^8.0.0",
     "@types/minimist": "^1.2.0",
     "@types/node": "^12.7.2",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "prettier": "^1.19.1",
     "typescript": "^3.5.3"
   }
 }

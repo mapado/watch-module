@@ -20,39 +20,41 @@ enum Theme {
   // orange: '#fc9867',
   // purple: '#ab9df2',
   // cyan: '#78dce8',
-};
+}
 
 /* ================== logging ================== */
 const cwd = nodeProcess.cwd();
-const argv = minimist(nodeProcess.argv.slice(2)).filter((a: string|undefined) => a);
+const argv = minimist(nodeProcess.argv.slice(2));
 
 const logDate = () => chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
 
-const debug = (...args: string[]) => {
+const debug = (...args: any[]) => {
   if (argv.v || argv.verbose) {
-    console.debug(logDate(),  chalk.hex(Theme.debug)('DEBUG'), ...args);
+    console.debug(logDate(), chalk.hex(Theme.debug)('DEBUG'), ...args);
   }
-}
+};
 
 const log = (...args: string[]) => {
-  console.log(logDate(),  ...args);
-}
+  console.log(logDate(), ...args);
+};
 
 const logModuleName = chalk.hex(Theme.moduleName);
 
 debug('arguments: ', argv);
 
-const moduleNameByPath: {[key:string]: string} = {};
+const moduleNameByPath: { [key: string]: string } = {};
 function getModuleNameForPath(path: string): string {
   if (!moduleNameByPath[path]) {
-      moduleNameByPath[path] = require(`${cwd}/${path}/package.json`).name;
+    moduleNameByPath[path] = require(`${cwd}/${path}/package.json`).name;
   }
 
   return moduleNameByPath[path];
 }
 
 function getModuleCommandForPath(path: string): string {
-  const packageJson = require(`${cwd}/${path}/package.json`);
+  const packageJson = JSON.parse(
+    fs.readFileSync(`${cwd}/${path}/package.json`).toString()
+  );
   if (packageJson['watch-module'] && packageJson['watch-module']['command']) {
     return packageJson['watch-module']['command'];
   }
@@ -64,12 +66,6 @@ function getModuleCommandForPath(path: string): string {
 }
 
 /* ================== build ================== */
-const changedModules: Set<string> = new Set();
-function buildAll(): void {
-  changedModules.forEach(buildPath);
-  changedModules.clear();
-}
-
 function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(logModuleName(moduleName), `Change detected`);
@@ -92,25 +88,35 @@ function buildPath(path: string): void {
       }
       debug(`Create module directory for "${moduleName}" and copy files`);
       const modulePath = `${cwd}/node_modules/${moduleName}`;
-      return fs.ensureDir(modulePath)
+      return fs
+        .ensureDir(modulePath)
         .then(() =>
           fs.copy(path, modulePath, {
-          filter: (src: string, dest: string) => {
+            filter: (src: string, dest: string) => {
               const srcAppendSlash = `${src}/`;
 
               return (
                 !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
                 !srcAppendSlash.startsWith(`${path}/.git/`)
               );
-            }
+            },
           })
         )
         .then(() => {
-            log(logModuleName(moduleName), chalk.hex(Theme.success)('build done'));
+          log(
+            logModuleName(moduleName),
+            chalk.hex(Theme.success)('build done')
+          );
         })
         .catch(console.error);
     }
-  )
+  );
+}
+
+const changedModules: Set<string> = new Set();
+function buildAll(): void {
+  changedModules.forEach(buildPath);
+  changedModules.clear();
 }
 
 /* ================== debounce & events ================== */
@@ -134,9 +140,15 @@ function main(): void {
 
   // One-liner for current directory, ignores .dotfiles
   chokidar
-    .watch(srcPaths, { ignored: /(^|[\/\\])\.[^\.\/]/ })
+    .watch(srcPaths, { ignored: /(^|[/\\])\.[^./]/ })
     .on('all', (event: any, path: string) => {
-      const modulePath = modulePaths.find((tmpPath: string) => path.startsWith(`${tmpPath}/`));
+      const modulePath = modulePaths.find((tmpPath: string) =>
+        path.startsWith(`${tmpPath}/`)
+      );
+
+      if (!modulePath) {
+        throw new Error('Unable to find module path. This should not happen.');
+      }
 
       onChange(modulePath);
     });

@@ -26,15 +26,17 @@ enum Theme {
 const cwd = nodeProcess.cwd();
 const argv = minimist(nodeProcess.argv.slice(2));
 
-const logDate = () => chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
+const logDate = (): string =>
+  chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
 
-const debug = (...args: any[]) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const debug = (...args: any[]): void => {
   if (argv.v || argv.verbose) {
     console.debug(logDate(), chalk.hex(Theme.debug)('DEBUG'), ...args);
   }
 };
 
-const log = (...args: string[]) => {
+const log = (...args: string[]): void => {
   console.log(logDate(), ...args);
 };
 
@@ -70,8 +72,6 @@ function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(logModuleName(moduleName), `Change detected`);
 
-  const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
-
   debug(`Build "${moduleName}" package`);
   const command = getModuleCommandForPath(path);
   debug(`Command is "${command}"`);
@@ -81,7 +81,7 @@ function buildPath(path: string): void {
       maxBuffer: 1024 * 500,
       cwd: path,
     },
-    (err, stdout, stderr) => {
+    err => {
       if (err) {
         console.log(err);
         return;
@@ -92,7 +92,7 @@ function buildPath(path: string): void {
         .ensureDir(modulePath)
         .then(() =>
           fs.copy(path, modulePath, {
-            filter: (src: string, dest: string) => {
+            filter: (src: string) => {
               const srcAppendSlash = `${src}/`;
 
               return (
@@ -138,20 +138,28 @@ function main(): void {
 
   const srcPaths = modulePaths.map((path: string) => `${path}/src`);
 
-  // One-liner for current directory, ignores .dotfiles
   chokidar
+    // One-liner for current directory, ignores .dotfiles
     .watch(srcPaths, { ignored: /(^|[/\\])\.[^./]/ })
-    .on('all', (event: any, path: string) => {
-      const modulePath = modulePaths.find((tmpPath: string) =>
-        path.startsWith(`${tmpPath}/`)
-      );
+    .on(
+      'all',
+      (
+        _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
+        path: string
+      ) => {
+        const modulePath = modulePaths.find((tmpPath: string) =>
+          path.startsWith(`${tmpPath}/`)
+        );
 
-      if (!modulePath) {
-        throw new Error('Unable to find module path. This should not happen.');
+        if (!modulePath) {
+          throw new Error(
+            'Unable to find module path. This should not happen.'
+          );
+        }
+
+        onChange(modulePath);
       }
-
-      onChange(modulePath);
-    });
+    );
 }
 
 main();

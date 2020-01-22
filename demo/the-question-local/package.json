@@ -1,0 +1,7 @@
+{
+  "name": "the-question",
+  "main": "src/index.js",
+  "scripts": {
+      "build": "echo \"built\""
+  }
+}

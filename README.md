@@ -4,6 +4,10 @@ A Javascript module watcher to work locally with packages.
 
 Replace the "not-really-functionnal" npm | yarn link.
 
+## Demo
+
+![Demo](demo.svg)
+
 ## Usage
 
 ```sh

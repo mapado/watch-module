@@ -40,6 +40,22 @@ function getModuleCommandForPath(path: string): string {
 const getNodeModulepath = (moduleName: string): string =>
   `${cwd}/node_modules/${moduleName}`;
 
+function backupModule(moduleName: string, modulePath: string): void {
+  const backupPath = `${modulePath}.bak`;
+
+  if (fs.existsSync(backupPath)) {
+    // do not backup if an old backup already exists
+    return;
+  }
+
+  debug(`Create backup directory for "${moduleName}" and save files`);
+
+  // copy dir to backup version
+  if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
+    fs.copySync(modulePath, backupPath);
+  }
+}
+
 /**
  * Trigger a build of the package
  */
@@ -61,13 +77,8 @@ export function buildPath(path: string): void {
         return;
       }
 
-      debug(`Create module directory for "${moduleName}" and copy files`);
       const modulePath = getNodeModulepath(moduleName);
-
-      // copy dir to backup version
-      if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
-        fs.copySync(modulePath, `${modulePath}.bak`);
-      }
+      backupModule(moduleName, modulePath);
 
       return fs
         .ensureDir(modulePath)

@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.2.1
+
+### Fixed
+
+- Only backup on the first execution. Fixes #7
+
 ## 1.2.0
 
 ### Added

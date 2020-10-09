@@ -30,6 +30,16 @@ async function getWatchPaths(modulePaths: string[]): Promise<string[]> {
       continue;
     } catch {}
 
+    try {
+      // then look for a lib/ dir
+      const libsPath = `${path}/libs`;
+      const stats = await fs.stat(libsPath);
+      if (stats.isDirectory()) {
+        srcPaths.push(libsPath);
+      }
+      continue;
+    } catch {}
+
     // if none of the above dirs were found, watch root path
     srcPaths.push(path);
   }

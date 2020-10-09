@@ -14,7 +14,8 @@ Replace the "not-really-functionnal" npm | yarn link.
 npx watch-module /path/to/my/module
 ```
 
-watch-module will detect code changes in your module, run the `build` script and copy the code into your `node_modules` folder.
+watch-module will detect code changes in your module, run the `build` script (if available) and copy the code into your `node_modules` folder.
+wtach-module will first try to locate an `src/` directory at project root, if it is not found it will look for a `lib/` directory, if it fails too it will watch the whole rpoject from the root
 
 ### Multiple packages
 
@@ -26,16 +27,16 @@ npx watch-module /path/to/my/module ../my-other-module
 
 ### Configuration
 
-watch-module do use `yarn|npm run build` by default, but you can override this command by configuring your `package.json` file:
+watch-module do use `yarn|npm run build` by default (if it is available under the package.json's scripts key, otherwise it will not execute any command), but you can override this command by configuring your module's `package.json` file:
 
 ```json
 {
   "name": "my package",
   "scripts": {
-      "build:prod": "touch build.js"
+    "build:prod": "touch build.js"
   },
   "watch-module": {
-      "command": "yarn run build:prod"
+    "command": "yarn run build:prod"
   }
 }
 ```

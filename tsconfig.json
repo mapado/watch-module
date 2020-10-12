@@ -1,16 +1,14 @@
 {
-    "compilerOptions": {
-        "outDir": "./dist/",
-        "sourceMap": true, 
-        "strict": true,
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "target": "es5",
-        "allowJs": true
-
-    },
-    "include": [
-        "./src/"
-    ]
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "es5",
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./src/"]
 }

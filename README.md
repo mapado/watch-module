@@ -15,7 +15,6 @@ npx watch-module /path/to/my/module
 ```
 
 watch-module will detect code changes in your module, run the `build` script (if available) and copy the code into your `node_modules` folder.
-wtach-module will first try to locate an `src/` directory at project root, if it is not found it will look for a `lib/` directory, if it fails too it will watch the whole rpoject from the root
 
 ### Multiple packages
 
@@ -27,7 +26,46 @@ npx watch-module /path/to/my/module ../my-other-module
 
 ### Configuration
 
-watch-module do use `yarn|npm run build` by default (if it is available under the package.json's scripts key, otherwise it will not execute any command), but you can override this command by configuring your module's `package.json` file:
+watch-module uses the following default configuration :
+
+```json
+{
+  // watch the files in the "src" directory
+  // and call "build" script when there is a change
+  "default": {
+    "includes": ["src"],
+    "command": "build"
+  }
+}
+```
+
+On first launch, watch-module copies the default configuration json file to `{HOME_FOLDER}/.config/watch-module.json`
+In order to force a different configuration for a specific module, you can add "per module" entries to this file :
+
+```json
+{
+  "default": {
+    "includes": ["src"],
+    "command": "build"
+  },
+  // watch the files in the "lib" directory
+  // and call "prepare" script when there is a change
+  "my-awesome-module": {
+    "includes": ["lib"],
+    "command": "prepare"
+  },
+  // watch all the files in the root directory
+  // do not watch the files in the "dist" directory
+  // do not call any command before copying the files
+  "my-other-module": {
+    "includes": [""], // use "" or "." to watch all files
+    "excludes": ["dist"]
+  }
+}
+```
+
+If no configuration is found for a module, watch-module falls back to the default configuration.
+You can override this global configuration by configuring the targeted module's `package.json` file direclty:
 
 ```json
 {
@@ -36,7 +74,8 @@ watch-module do use `yarn|npm run build` by default (if it is available under th
     "build:prod": "touch build.js"
   },
   "watch-module": {
-    "command": "yarn run build:prod"
+    "command": "yarn run build:prod",
+    "includes": ["src"] // if "includes" is not defined, watch-module will use "src" for retro compatibility
   }
 }
 ```

@@ -1,54 +1,19 @@
 import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
-import { promises as fs } from 'fs-extra';
-import { debug } from './logging';
+import { debug, log } from './logging';
 import { buildPath, restoreOldDirectories } from './build';
 import argv from './argv';
-
-async function getWatchPaths(modulePaths: string[]): Promise<string[]> {
-  const srcPaths: string[] = [];
-  for (let i = 0; i < modulePaths.length; i++) {
-    const path = modulePaths[i];
-    try {
-      // first look for an src/ dir
-      const srcPath = `${path}/src`;
-      const stats = await fs.stat(srcPath);
-      if (stats.isDirectory()) {
-        srcPaths.push(srcPath);
-      }
-      continue;
-    } catch {}
-
-    try {
-      // then look for a lib/ dir
-      const libPath = `${path}/lib`;
-      const stats = await fs.stat(libPath);
-      if (stats.isDirectory()) {
-        srcPaths.push(libPath);
-      }
-      continue;
-    } catch {}
-
-    try {
-      // then look for a lib/ dir
-      const libsPath = `${path}/libs`;
-      const stats = await fs.stat(libsPath);
-      if (stats.isDirectory()) {
-        srcPaths.push(libsPath);
-      }
-      continue;
-    } catch {}
-
-    // if none of the above dirs were found, watch root path
-    srcPaths.push(path);
-  }
-  return srcPaths;
-}
+import {
+  createDefaultConfig,
+  getIncludesPaths,
+  getExcludesPaths,
+} from './config-utils';
 
 function main(): void {
   debug('arguments: ', argv);
 
+  createDefaultConfig();
   /* ================== debounce & events ================== */
 
   const changedModules: Set<string> = new Set();
@@ -70,37 +35,42 @@ function main(): void {
     return;
   }
 
-  getWatchPaths(modulePaths).then(srcPaths => {
-    chokidar
-      // One-liner for current directory, ignores .dotfiles
-      .watch(srcPaths, { ignored: /(^|[/\\])\.[^./]/ })
-      .on(
-        'all',
-        (
-          _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
-          path: string
-        ) => {
-          const modulePath = modulePaths.find((tmpPath: string) => {
-            return (
-              // check if path starts with the module path or if it is the root of the module
-              path.startsWith(`${tmpPath}/`) || path.startsWith(`${tmpPath}`)
-            );
-          });
+  const includesPaths = getIncludesPaths(modulePaths);
+  const excludesPaths = getExcludesPaths(modulePaths);
 
-          if (!modulePath) {
-            throw new Error(
-              'Unable to find module path. This should not happen.'
-            );
-          }
+  if (!includesPaths.length) {
+    log('nothing to watch, exiting...');
+  }
+  // return;
+  chokidar
+    // One-liner for current directory, ignores .dotfiles
+    .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })
+    .on(
+      'all',
+      (
+        _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
+        path: string
+      ) => {
+        const modulePath = modulePaths.find((tmpPath: string) => {
+          return (
+            // check if path starts with the module path
+            path.startsWith(`${tmpPath}/`)
+          );
+        });
 
-          onChange(modulePath);
+        if (!modulePath) {
+          throw new Error(
+            'Unable to find module path. This should not happen.'
+          );
         }
-      );
 
-    process.on('SIGINT', () => {
-      Promise.all(restoreOldDirectories(modulePaths)).then(() => {
-        process.exit();
-      });
+        onChange(modulePath);
+      }
+    );
+
+  process.on('SIGINT', () => {
+    Promise.all(restoreOldDirectories(modulePaths)).then(() => {
+      process.exit();
     });
   });
 }

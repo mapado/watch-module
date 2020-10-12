@@ -5,6 +5,7 @@ import hasYarn from 'has-yarn';
 import chalk from 'chalk';
 import Theme from './theme';
 import { debug, log } from './logging';
+import { getModuleConfigEntry } from './config-utils';
 
 export const cwd = nodeProcess.cwd();
 
@@ -26,15 +27,13 @@ function getModuleCommandForPath(path: string): string | void {
     fs.readFileSync(`${cwd}/${path}/package.json`).toString()
   );
 
-  // a command override is found in the package
-  if (packageJson['watch-module'] && packageJson['watch-module']['command']) {
-    return packageJson['watch-module']['command'];
-  }
+  const moduleConfig = getModuleConfigEntry(path);
+  const command = moduleConfig.command;
 
   // no command override found
-  if (packageJson['scripts'] && packageJson['scripts']['build']) {
+  if (command && packageJson['scripts'] && packageJson['scripts'][command]) {
     const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
-    return `${yarnOrNpm} run build`;
+    return `${yarnOrNpm} run ${command}`;
   }
 
   // no build script = no build

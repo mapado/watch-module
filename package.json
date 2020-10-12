@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "tsc --build tsconfig.json",
-    "prepublishOnly": "tsc --build tsconfig.json"
+    "prepublishOnly": "tsc --build tsconfig.json",
+    "postbuild": "cp src/default-config.json dist/default-config.json"
   },
   "repository": "https://github.com/mapado/watch-module",
   "license": "MIT",

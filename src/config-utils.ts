@@ -39,7 +39,6 @@ export function validateConfig(config: Config): void {
 
 export function getConfig(): Config {
   if (globalConfigCache) {
-    console.log(globalConfigCache);
     return globalConfigCache;
   }
   const configPath = getConfigPath();

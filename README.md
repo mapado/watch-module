@@ -13,7 +13,7 @@ Replace the "not-really-functionnal" npm | yarn link.
 Place yourself at the root of your main package and call:
 
 ```sh
-npx watch-module ../path/to/my/module (path must be relative to your current `pwd`)
+npx watch-module /path/to/my/module
 ```
 
 watch-module will detect code changes in your module, run the `build` script (if available) and copy the code into your `node_modules` folder.
@@ -24,7 +24,7 @@ watch-module will not copy the node_modules folder contained inside your module
 watch-modules does support multiple modules:
 
 ```sh
-npx watch-module ../path/to/my/module ../my-other-module
+npx watch-module /path/to/my/module ../my-other-module
 ```
 
 ### Configuration

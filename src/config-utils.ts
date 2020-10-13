@@ -1,12 +1,9 @@
-import nodeProcess from 'process';
 import fs from 'fs-extra';
 import hasYarn from 'has-yarn';
 import { log } from './logging';
 import chalk from 'chalk';
 import Theme from './theme';
-import { getModuleNameForPath } from './utils';
-
-export const cwd = nodeProcess.cwd();
+import { getModuleNameForPath, getModuleFullPath } from './utils';
 
 const CONFIG_FILE_NAME = 'watch-module.json';
 const CONFIG_PATH = '.config/watch-module';
@@ -71,7 +68,7 @@ export function getModuleConfigEntry(modulePath: string): ConfigEntry {
     return moduleConfigCache[moduleName];
   }
   const packageJson = JSON.parse(
-    fs.readFileSync(`${cwd}/${modulePath}/package.json`).toString()
+    fs.readFileSync(`${getModuleFullPath(modulePath)}/package.json`).toString()
   );
 
   if (packageJson['watch-module']) {

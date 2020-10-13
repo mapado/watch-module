@@ -1,7 +1,6 @@
 import nodeProcess from 'process';
 import { exec } from 'child_process';
 import fs from 'fs-extra';
-import hasYarn from 'has-yarn';
 import chalk from 'chalk';
 import Theme from './theme';
 import { debug, log } from './logging';
@@ -23,20 +22,8 @@ function getModuleNameForPath(path: string): string {
  * get the command to call for the package
  */
 function getModuleCommandForPath(path: string): string | void {
-  const packageJson = JSON.parse(
-    fs.readFileSync(`${cwd}/${path}/package.json`).toString()
-  );
-
   const moduleConfig = getModuleConfigEntry(path);
-  const command = moduleConfig.command;
-
-  // no command override found
-  if (command && packageJson['scripts'] && packageJson['scripts'][command]) {
-    const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
-    return `${yarnOrNpm} run ${command}`;
-  }
-
-  // no build script = no build
+  return moduleConfig.command;
 }
 
 const getNodeModulepath = (moduleName: string): string =>
@@ -58,7 +45,7 @@ function backupModule(moduleName: string, modulePath: string): void {
   }
 }
 
-function copyFiles(moduleName: string, path: string) {
+function copyFiles(moduleName: string, path: string): Promise<void> {
   const modulePath = getNodeModulepath(moduleName);
   backupModule(moduleName, modulePath);
 
@@ -82,7 +69,7 @@ function copyFiles(moduleName: string, path: string) {
       )
     )
     .then(() => {
-      log(moduleName, chalk.hex(Theme.success)('build done'));
+      log(moduleName, chalk.hex(Theme.success)('module swapped'));
     })
     .catch(console.error);
 }
@@ -97,10 +84,11 @@ export function buildPath(path: string): void {
   const command = getModuleCommandForPath(path);
 
   if (!command) {
+    debug(`No command, copy files`);
     copyFiles(moduleName, path);
     return;
   }
-  debug(`Command is "${command}"`);
+  debug(`Command is "${command}", run and copy files`);
   exec(
     command,
     {

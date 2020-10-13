@@ -1,6 +1,0 @@
-{
-  "default": {
-    "includes": ["src"],
-    "command": "build"
-  }
-}

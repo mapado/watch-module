@@ -1,12 +1,15 @@
 import nodeProcess from 'process';
 import fs from 'fs-extra';
+import hasYarn from 'has-yarn';
 import { log } from './logging';
-import defaultConfig from './default-config.json';
+import chalk from 'chalk';
+import Theme from './theme';
 import { getModuleNameForPath } from './utils';
 
 export const cwd = nodeProcess.cwd();
 
 const CONFIG_FILE_NAME = 'watch-module.json';
+const CONFIG_PATH = '.config/watch-module';
 
 let globalConfigCache: Config | null = null;
 const moduleConfigCache: Config = {};
@@ -19,50 +22,49 @@ export type ConfigEntry = {
   includes?: string[];
   excludes?: string[];
   command?: string;
+  default?: boolean;
 };
 
-export function getConfigPath(): string | void {
+export function getGlobalConfigPath(): string | void {
   const homeDir =
     process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
   if (!homeDir) {
     return;
   }
 
-  return `${homeDir}/.config`;
+  return `${homeDir}/${CONFIG_PATH}`;
 }
 
-export function validateConfig(config: Config): void {
-  if (!config.default || !config.default.includes) {
-    throw new Error('Config must have one path in includes at minimum');
-  }
-}
-
-export function getConfig(): Config {
+export function getGlobalConfig(): Config {
   if (globalConfigCache) {
     return globalConfigCache;
   }
-  const configPath = getConfigPath();
-  if (!configPath) {
-    return defaultConfig;
+
+  let config = {};
+  const configPath = getGlobalConfigPath();
+  if (!configPath || !fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
+    globalConfigCache = config;
+    return config;
   }
 
-  const configFilePath = `${configPath}/${CONFIG_FILE_NAME}`;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    config = require(`${configPath}/${CONFIG_FILE_NAME}`);
+  } catch (e) {} //eslint-disable-line no-empty
 
-  if (!fs.existsSync(configFilePath)) {
-    globalConfigCache = defaultConfig;
-    return defaultConfig;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const config = require(configFilePath);
-
-  if (!config.default) {
-    config.default = defaultConfig.default;
-  }
-  validateConfig(config);
   globalConfigCache = config;
   return config;
 }
 
+/**
+ * get the config for a specipfic module identified by modulePath
+ * returns
+ *    module's package.json's watch-module entry content
+ *    or
+ *    user's config's module entry
+ *    or
+ *    default config entry
+ */
 export function getModuleConfigEntry(modulePath: string): ConfigEntry {
   const moduleName = getModuleNameForPath(modulePath);
   if (moduleConfigCache[moduleName]) {
@@ -72,20 +74,35 @@ export function getModuleConfigEntry(modulePath: string): ConfigEntry {
     fs.readFileSync(`${cwd}/${modulePath}/package.json`).toString()
   );
 
-  // a command override is found in the package
-  if (!packageJson['watch-module']) {
-    const globalConfig = getConfig();
-    const moduleConfig = globalConfig[moduleName] || globalConfig.default;
-    moduleConfigCache[moduleName] = moduleConfig;
-    return moduleConfig;
+  if (packageJson['watch-module']) {
+    // a watch-module config is found in the package
+    const packageJsonConfig = packageJson['watch-module'];
+    if (typeof packageJsonConfig.includes === 'undefined') {
+      packageJsonConfig.includes = ['src'];
+    }
+    moduleConfigCache[moduleName] = packageJsonConfig;
+    log(moduleName, chalk.hex(Theme.info)('using package.json config'));
+    return packageJsonConfig;
   }
 
-  const moduleConfig = packageJson['watch-module'];
-  if (typeof moduleConfig.includes === 'undefined') {
-    moduleConfig.includes = ['src'];
+  const globalConfig = getGlobalConfig();
+  if (globalConfig[moduleName]) {
+    // a config for this module is found in the global config
+    moduleConfigCache[moduleName] = globalConfig[moduleName];
+    log(moduleName, chalk.hex(Theme.info)('using global config'));
+    return globalConfig[moduleName];
   }
-  moduleConfigCache[moduleName] = moduleConfig;
-  return moduleConfig;
+
+  // no config was found, return default config
+  const yarnOrNpm = hasYarn(modulePath) ? 'yarn' : 'npm';
+  const defaultConfig = {
+    includes: ['src'],
+    command: `${yarnOrNpm} run build`,
+  };
+
+  moduleConfigCache[moduleName] = defaultConfig;
+  log(moduleName, chalk.hex(Theme.info)('using default config'));
+  return defaultConfig;
 }
 
 export function getIncludesPaths(modulePaths: string[]): string[] {
@@ -141,16 +158,15 @@ export function getExcludesPaths(modulePaths: string[]): string[] {
 }
 
 export function createDefaultConfig(): void {
-  const configPath = getConfigPath();
+  const configPath = getGlobalConfigPath();
   if (!configPath) {
     return;
   }
 
-  const configFilePath = `${configPath}/${CONFIG_FILE_NAME}`;
-  if (fs.existsSync(configFilePath)) {
+  if (fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
     return;
   }
-  log('creating config file: ', configFilePath);
+  log('creating config file: ', `${configPath}/${CONFIG_FILE_NAME}`);
   fs.mkdirSync(configPath, { recursive: true });
-  fs.copySync(`${__dirname}/default-config.json`, configFilePath);
+  fs.closeSync(fs.openSync(`${configPath}/${CONFIG_FILE_NAME}`, 'w'));
 }

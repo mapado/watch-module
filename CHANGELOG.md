@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.0
+
+### Added
+
+- watch-module can use a global config file (see README.md)
+
 ## 1.2.1
 
 ### Fixed

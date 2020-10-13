@@ -1,10 +1,11 @@
 import nodeProcess from 'process';
 import { exec } from 'child_process';
 import fs from 'fs-extra';
-import hasYarn from 'has-yarn';
 import chalk from 'chalk';
 import Theme from './theme';
 import { debug, log } from './logging';
+import { getModuleConfigEntry } from './config-utils';
+import { getModuleFullPath } from './utils';
 
 export const cwd = nodeProcess.cwd();
 
@@ -12,7 +13,9 @@ const moduleNameByPath: { [key: string]: string } = {};
 
 function getModuleNameForPath(path: string): string {
   if (!moduleNameByPath[path]) {
-    moduleNameByPath[path] = require(`${cwd}/${path}/package.json`).name;
+    moduleNameByPath[path] = require(`${getModuleFullPath(
+      path
+    )}/package.json`).name;
   }
 
   return moduleNameByPath[path];
@@ -21,20 +24,9 @@ function getModuleNameForPath(path: string): string {
 /**
  * get the command to call for the package
  */
-function getModuleCommandForPath(path: string): string {
-  const packageJson = JSON.parse(
-    fs.readFileSync(`${cwd}/${path}/package.json`).toString()
-  );
-
-  // a command override is found in the package
-  if (packageJson['watch-module'] && packageJson['watch-module']['command']) {
-    return packageJson['watch-module']['command'];
-  }
-
-  // no command override found
-  const yarnOrNpm = hasYarn(path) ? 'yarn' : 'npm';
-
-  return `${yarnOrNpm} run build`;
+function getModuleCommandForPath(path: string): string | void {
+  const moduleConfig = getModuleConfigEntry(path);
+  return moduleConfig.command;
 }
 
 const getNodeModulepath = (moduleName: string): string =>
@@ -56,6 +48,35 @@ function backupModule(moduleName: string, modulePath: string): void {
   }
 }
 
+function copyFiles(moduleName: string, path: string): Promise<void> {
+  const modulePath = getNodeModulepath(moduleName);
+  backupModule(moduleName, modulePath);
+
+  return fs
+    .ensureDir(modulePath)
+    .then(() =>
+      fs.copy(path, modulePath, {
+        filter: (src: string) => {
+          const srcAppendSlash = `${src}/`;
+          return (
+            !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
+            !srcAppendSlash.startsWith(`${path}/.git/`)
+          );
+        },
+      })
+    )
+    .then(() =>
+      fs.writeFile(
+        `${modulePath}/IS_UNDER_WATCH_MODULE`,
+        'IS_UNDER_WATCH_MODULE'
+      )
+    )
+    .then(() => {
+      log(moduleName, chalk.hex(Theme.success)('module swapped'));
+    })
+    .catch(console.error);
+}
+
 /**
  * Trigger a build of the package
  */
@@ -64,7 +85,13 @@ export function buildPath(path: string): void {
   log(moduleName, `Change detected`);
   debug(`Build "${moduleName}" package`);
   const command = getModuleCommandForPath(path);
-  debug(`Command is "${command}"`);
+
+  if (!command) {
+    debug(`No command, copy files`);
+    copyFiles(moduleName, path);
+    return;
+  }
+  debug(`Command is "${command}", run and copy files`);
   exec(
     command,
     {
@@ -76,33 +103,7 @@ export function buildPath(path: string): void {
         console.log(err);
         return;
       }
-
-      const modulePath = getNodeModulepath(moduleName);
-      backupModule(moduleName, modulePath);
-
-      return fs
-        .ensureDir(modulePath)
-        .then(() =>
-          fs.copy(path, modulePath, {
-            filter: (src: string) => {
-              const srcAppendSlash = `${src}/`;
-              return (
-                !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
-                !srcAppendSlash.startsWith(`${path}/.git/`)
-              );
-            },
-          })
-        )
-        .then(() =>
-          fs.writeFile(
-            `${modulePath}/IS_UNDER_WATCH_MODULE`,
-            'IS_UNDER_WATCH_MODULE'
-          )
-        )
-        .then(() => {
-          log(moduleName, chalk.hex(Theme.success)('build done'));
-        })
-        .catch(console.error);
+      copyFiles(moduleName, path);
     }
   );
 }

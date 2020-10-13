@@ -1,9 +1,10 @@
 import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
-import { debug } from './logging';
+import { debug, log } from './logging';
 import { buildPath, restoreOldDirectories } from './build';
 import argv from './argv';
+import { getIncludesPaths, getExcludesPaths } from './config-utils';
 
 function main(): void {
   debug('arguments: ', argv);
@@ -29,20 +30,28 @@ function main(): void {
     return;
   }
 
-  const srcPaths = modulePaths.map((path: string) => `${path}/src`);
+  const includesPaths = getIncludesPaths(modulePaths);
+  const excludesPaths = getExcludesPaths(modulePaths);
 
+  if (!includesPaths.length) {
+    log('nothing to watch, exiting...');
+  }
+  // return;
   chokidar
     // One-liner for current directory, ignores .dotfiles
-    .watch(srcPaths, { ignored: /(^|[/\\])\.[^./]/ })
+    .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })
     .on(
       'all',
       (
         _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
         path: string
       ) => {
-        const modulePath = modulePaths.find((tmpPath: string) =>
-          path.startsWith(`${tmpPath}/`)
-        );
+        const modulePath = modulePaths.find((tmpPath: string) => {
+          return (
+            // check if path starts with the module path
+            path.startsWith(`${tmpPath}/`)
+          );
+        });
 
         if (!modulePath) {
           throw new Error(

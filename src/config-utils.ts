@@ -11,17 +11,17 @@ const CONFIG_PATH = '.config/watch-module';
 let globalConfigCache: Config | null = null;
 const moduleConfigCache: Config = {};
 
-export type Config = {
+type Config = {
   [key: string]: ConfigEntry;
 };
 
-export type ConfigEntry = {
+type ConfigEntry = {
   includes?: string[];
   excludes?: string[];
   command?: string;
 };
 
-export function getGlobalConfigPath(): string | void {
+function getGlobalConfigPath(): string | void {
   const homeDir =
     process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
   if (!homeDir) {
@@ -31,10 +31,26 @@ export function getGlobalConfigPath(): string | void {
   return `${homeDir}/${CONFIG_PATH}`;
 }
 
-export function getGlobalConfig(): Config {
+function createDefaultConfig(): void {
+  const configPath = getGlobalConfigPath();
+  if (!configPath) {
+    return;
+  }
+
+  if (fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
+    return;
+  }
+  log('creating config file: ', `${configPath}/${CONFIG_FILE_NAME}`);
+  fs.mkdirSync(configPath, { recursive: true });
+  fs.closeSync(fs.openSync(`${configPath}/${CONFIG_FILE_NAME}`, 'w'));
+}
+
+function getGlobalConfig(): Config {
   if (globalConfigCache) {
     return globalConfigCache;
   }
+
+  createDefaultConfig();
 
   let config = {};
   const configPath = getGlobalConfigPath();
@@ -151,18 +167,4 @@ export function getExcludesPaths(modulePaths: string[]): string[] {
     });
   }
   return srcPaths;
-}
-
-export function createDefaultConfig(): void {
-  const configPath = getGlobalConfigPath();
-  if (!configPath) {
-    return;
-  }
-
-  if (fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
-    return;
-  }
-  log('creating config file: ', `${configPath}/${CONFIG_FILE_NAME}`);
-  fs.mkdirSync(configPath, { recursive: true });
-  fs.closeSync(fs.openSync(`${configPath}/${CONFIG_FILE_NAME}`, 'w'));
 }

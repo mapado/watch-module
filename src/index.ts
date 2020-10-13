@@ -4,16 +4,11 @@ import chokidar from 'chokidar';
 import { debug, log } from './logging';
 import { buildPath, restoreOldDirectories } from './build';
 import argv from './argv';
-import {
-  createDefaultConfig,
-  getIncludesPaths,
-  getExcludesPaths,
-} from './config-utils';
+import { getIncludesPaths, getExcludesPaths } from './config-utils';
 
 function main(): void {
   debug('arguments: ', argv);
 
-  createDefaultConfig();
   /* ================== debounce & events ================== */
 
   const changedModules: Set<string> = new Set();

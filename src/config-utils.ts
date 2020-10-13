@@ -19,7 +19,6 @@ export type ConfigEntry = {
   includes?: string[];
   excludes?: string[];
   command?: string;
-  default?: boolean;
 };
 
 export function getGlobalConfigPath(): string | void {

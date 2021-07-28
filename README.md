@@ -32,7 +32,7 @@ npx watch-module /path/to/my/module ../my-other-module
 On first launch, watch-module creates an empty configuration file to `{HOME_FOLDER}/.config/watch-module/config.json`
 In order to force a different configuration for a specific module, you can add "per module" entries to this file :
 
-```json
+```jsonc
 {
   // watch the files in the "lib" directory
   // and call "npm run build:prepare" script when there is a change
@@ -52,7 +52,7 @@ In order to force a different configuration for a specific module, you can add "
 
 You can override this global configuration by configuring the targeted module's `package.json` file direclty:
 
-```json
+```jsonc
 {
   "name": "my package",
   "scripts": {
@@ -67,7 +67,7 @@ You can override this global configuration by configuring the targeted module's 
 
 If no configuration is found for a module, watch-module falls back to the default configuration:
 
-```json
+```jsonc
 {
   "includes": ["src"],
   "command": "yarn|npm run build" // default configs tries to detect yarn or npm

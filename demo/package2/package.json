@@ -5,6 +5,6 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-      "build": "touch build.js"
+    "build": "touch build.js"
   }
 }

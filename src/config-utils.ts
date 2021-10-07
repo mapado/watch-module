@@ -129,7 +129,7 @@ export function getIncludesPaths(modulePaths: string[]): string[] {
         ? moduleConfig.includes
         : [];
 
-    moduleIncludes.forEach(includePath => {
+    moduleIncludes.forEach((includePath) => {
       let pathToAdd = `${path}/`;
       if (includePath && includePath !== '.') {
         pathToAdd = `${pathToAdd}${includePath}`;
@@ -155,7 +155,7 @@ export function getExcludesPaths(modulePaths: string[]): string[] {
         ? moduleConfig.excludes
         : [];
 
-    moduleExcludes.forEach(excludePath => {
+    moduleExcludes.forEach((excludePath) => {
       let pathToAdd = `${path}/`;
       if (excludePath && excludePath !== '.') {
         pathToAdd = `${pathToAdd}${excludePath}`;

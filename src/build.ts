@@ -98,7 +98,7 @@ export function buildPath(path: string): void {
       maxBuffer: 1024 * 500,
       cwd: path,
     },
-    err => {
+    (err) => {
       if (err) {
         console.log(err);
         return;
@@ -109,23 +109,21 @@ export function buildPath(path: string): void {
 }
 
 export function restoreOldDirectories(pathList: string[]): Promise<void>[] {
-  return pathList.map(
-    (path: string): Promise<void> => {
-      const moduleName = getModuleNameForPath(path);
-      const nodePath = getNodeModulepath(moduleName);
-      const nodePathBak = `${nodePath}.bak`;
+  return pathList.map((path: string): Promise<void> => {
+    const moduleName = getModuleNameForPath(path);
+    const nodePath = getNodeModulepath(moduleName);
+    const nodePathBak = `${nodePath}.bak`;
 
-      if (
-        !fs.existsSync(nodePathBak) ||
-        !fs.statSync(nodePathBak).isDirectory()
-      ) {
-        return Promise.resolve();
-      }
-
-      return fs
-        .remove(nodePath)
-        .then(() => fs.copy(nodePathBak, nodePath))
-        .then(() => fs.remove(nodePathBak));
+    if (
+      !fs.existsSync(nodePathBak) ||
+      !fs.statSync(nodePathBak).isDirectory()
+    ) {
+      return Promise.resolve();
     }
-  );
+
+    return fs
+      .remove(nodePath)
+      .then(() => fs.copy(nodePathBak, nodePath))
+      .then(() => fs.remove(nodePathBak));
+  });
 }

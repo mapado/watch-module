@@ -2,10 +2,10 @@ import nodeProcess from 'process';
 import { exec } from 'child_process';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import Theme from './theme';
-import { debug, log } from './logging';
-import { getModuleConfigEntry } from './config-utils';
-import { getModuleFullPath } from './utils';
+import Theme from './theme.js';
+import { debug, log } from './logging.js';
+import { getModuleConfigEntry } from './config-utils.js';
+import { getModuleFullPath } from './utils.js';
 
 export const cwd = nodeProcess.cwd();
 

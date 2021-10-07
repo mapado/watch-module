@@ -4,9 +4,9 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "es2020", // TODO change to "node12" when upgrading to TS 4.5 https://devblogs.microsoft.com/typescript/announcing-typescript-4-5-beta/#esm-nodejs
     "esModuleInterop": true,
-    "target": "es5",
+    "target": "es2020",
     "allowJs": true,
     "resolveJsonModule": true
   },

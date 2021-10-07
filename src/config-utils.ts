@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import hasYarn from 'has-yarn';
-import { log } from './logging';
 import chalk from 'chalk';
-import Theme from './theme';
-import { getModuleNameForPath, getModuleFullPath } from './utils';
+import { log } from './logging.js';
+import Theme from './theme.js';
+import { getModuleNameForPath, getModuleFullPath } from './utils.js';
 
 const CONFIG_FILE_NAME = 'watch-module.json';
 const CONFIG_PATH = '.config/watch-module';

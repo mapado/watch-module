@@ -1,10 +1,10 @@
 import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
-import { debug, log } from './logging';
-import { buildPath, restoreOldDirectories } from './build';
-import argv from './argv';
-import { getIncludesPaths, getExcludesPaths } from './config-utils';
+import { debug, log } from './logging.js';
+import { buildPath, restoreOldDirectories } from './build.js';
+import argv from './argv.js';
+import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
 
 function main(): void {
   debug('arguments: ', argv);

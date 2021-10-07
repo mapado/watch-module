@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import Theme from './theme';
-import argv from './argv';
+import Theme from './theme.js';
+import argv from './argv.js';
 
 const logDate = (): string =>
   chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);

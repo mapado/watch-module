@@ -1,3 +1,4 @@
+import fs from 'fs-extra';
 import nodeProcess from 'process';
 
 export const cwd = nodeProcess.cwd();
@@ -10,9 +11,12 @@ export function getModuleFullPath(path: string): string {
 
 export function getModuleNameForPath(path: string): string {
   if (!moduleNameByPath[path]) {
-    moduleNameByPath[path] = require(`${getModuleFullPath(
-      path
-    )}/package.json`).name;
+    const fullPath = `${getModuleFullPath(path)}/package.json`;
+    const packageJsonContent = fs.readFileSync(fullPath, {
+      encoding: 'utf8',
+    });
+    const packageJson = JSON.parse(packageJsonContent);
+    moduleNameByPath[path] = packageJson.name;
   }
 
   return moduleNameByPath[path];

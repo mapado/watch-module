@@ -5,21 +5,9 @@ import chalk from 'chalk';
 import Theme from './theme.js';
 import { debug, log } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
-import { getModuleFullPath } from './utils.js';
+import { getModuleNameForPath } from './utils.js';
 
 export const cwd = nodeProcess.cwd();
-
-const moduleNameByPath: { [key: string]: string } = {};
-
-function getModuleNameForPath(path: string): string {
-  if (!moduleNameByPath[path]) {
-    moduleNameByPath[path] = require(`${getModuleFullPath(
-      path
-    )}/package.json`).name;
-  }
-
-  return moduleNameByPath[path];
-}
 
 /**
  * get the command to call for the package

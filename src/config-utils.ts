@@ -61,7 +61,9 @@ function getGlobalConfig(): Config {
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    config = require(`${configPath}/${CONFIG_FILE_NAME}`);
+    config = JSON.parse(
+      fs.readFileSync(`${configPath}/${CONFIG_FILE_NAME}`, { encoding: 'utf8' })
+    );
   } catch (e) {} //eslint-disable-line no-empty
 
   globalConfigCache = config;

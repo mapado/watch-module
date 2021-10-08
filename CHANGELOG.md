@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 2.0.0
+
+[BREAKING] Built for modern node :
+- Use ES Module, dynamic import, etc.
+- node version should be `^12.20.0 || ^14.13.1 || >=16.0.0`
+
 ## 1.3.0
 
 ### Added

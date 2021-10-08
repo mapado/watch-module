@@ -5,9 +5,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build:prod": "touch build.js"
+    "build:prod": "cp src/index.js build/index.js"
   },
   "watch-module": {
-    "command": "touch build.js"
+    "command": "cp src/index.js build/index.js"
   }
 }

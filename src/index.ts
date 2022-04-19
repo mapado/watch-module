@@ -36,7 +36,7 @@ function main(): void {
   if (!includesPaths.length) {
     log('nothing to watch, exiting...');
   }
-  // return;
+
   chokidar
     // One-liner for current directory, ignores .dotfiles
     .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })

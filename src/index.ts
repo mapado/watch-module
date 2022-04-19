@@ -59,6 +59,10 @@ function main(): void {
           );
         }
 
+        if (_event === 'change') {
+          debug(`File changes: ${path}`);
+        }
+
         onChange(modulePath);
       }
     );

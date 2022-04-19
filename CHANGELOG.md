@@ -1,8 +1,15 @@
 # CHANGELOG
 
+## 2.1.0
+
+### Added
+
+- Display the path of the changes files in verbose mode.
+
 ## 2.0.0
 
 [BREAKING] Built for modern node :
+
 - Use ES Module, dynamic import, etc.
 - node version should be `^12.20.0 || ^14.13.1 || >=16.0.0`
 

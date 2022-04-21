@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.1
+
+- Fix excludes paths by removing trailing slash [#27](https://github.com/mapado/watch-module/pull/27)
+
 ## 2.1.0
 
 ### Added

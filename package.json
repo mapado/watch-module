@@ -1,7 +1,7 @@
 {
   "name": "watch-module",
   "type": "module",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A Javascript module watcher to work locally with package",
   "bin": {
     "watch-module": "bin/watch-module.js"

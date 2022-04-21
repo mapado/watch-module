@@ -149,9 +149,7 @@ export function getExcludesPaths(modulePaths: string[]): string[] {
   const srcPaths: string[] = [];
   for (let i = 0; i < modulePaths.length; i++) {
     const path = modulePaths[i];
-
     const moduleConfig = getModuleConfigEntry(path);
-
     const moduleExcludes =
       moduleConfig.excludes && Array.isArray(moduleConfig.excludes)
         ? moduleConfig.excludes
@@ -159,14 +157,18 @@ export function getExcludesPaths(modulePaths: string[]): string[] {
 
     moduleExcludes.forEach((excludePath) => {
       let pathToAdd = `${path}/`;
+
       if (excludePath && excludePath !== '.') {
-        pathToAdd = `${pathToAdd}${excludePath}`;
+        pathToAdd = `${pathToAdd}${excludePath.replace(/\/+$/, '')}`;
       }
+
       if (!fs.existsSync(pathToAdd)) {
         return;
       }
+
       srcPaths.push(pathToAdd);
     });
   }
+
   return srcPaths;
 }

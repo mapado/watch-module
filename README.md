@@ -79,3 +79,15 @@ If no configuration is found for a module, watch-module falls back to the defaul
 [npm link | yarn link] : it does work fine until you have dependencies, etc. in your package.
 
 [yalc](https://github.com/whitecolor/yalc) : nice alternative, but too complex for our purpose (it does use a local repository, that you need to push on change, etc.)
+
+## Troubleshooting
+
+### Command not found
+
+If you have the error `Command not found`, you can force npx to use the latest version of the package:
+
+```sh
+npx watch-module@latest
+```
+
+It should resolve the issue.

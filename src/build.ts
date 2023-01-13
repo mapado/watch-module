@@ -72,7 +72,7 @@ const currentlyBuildingModules: Record<string, ChildProcess> = {};
  */
 export function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
-  log(moduleName, `Change detected`);
+  log(moduleName, 'Change detected');
   debug(`Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
@@ -96,12 +96,15 @@ export function buildPath(path: string): void {
       maxBuffer: 1024 * 500,
       cwd: path,
     },
-    (err) => {
+    (err, stdout, stderr) => {
       if (err) {
         if (err.killed) {
           debug(`Old process for ${moduleName} killed.`);
         } else {
-          console.log(err);
+          log(moduleName, chalk.hex(Theme.error)(err.message));
+
+          console.log(chalk.hex(Theme.warn)(stdout));
+          console.log(chalk.hex(Theme.error)(stderr));
         }
         return;
       }

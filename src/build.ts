@@ -1,5 +1,5 @@
 import nodeProcess from 'process';
-import { exec } from 'child_process';
+import { ChildProcess, exec } from 'child_process';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import Theme from './theme.js';
@@ -65,6 +65,8 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
     .catch(console.error);
 }
 
+const currentlyBuildingModules: Record<string, ChildProcess> = {};
+
 /**
  * Trigger a build of the package
  */
@@ -72,6 +74,12 @@ export function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(moduleName, `Change detected`);
   debug(`Build "${moduleName}" package`);
+
+  if (currentlyBuildingModules[moduleName]) {
+    debug(`kill old process for ${moduleName}...`);
+    currentlyBuildingModules[moduleName].kill();
+  }
+
   const command = getModuleCommandForPath(path);
 
   if (!command) {
@@ -79,8 +87,10 @@ export function buildPath(path: string): void {
     copyFiles(moduleName, path);
     return;
   }
+
   debug(`Command is "${command}", run and copy files`);
-  exec(
+
+  currentlyBuildingModules[moduleName] = exec(
     command,
     {
       maxBuffer: 1024 * 500,
@@ -88,7 +98,11 @@ export function buildPath(path: string): void {
     },
     (err) => {
       if (err) {
-        console.log(err);
+        if (err.killed) {
+          debug(`Old process for ${moduleName} killed.`);
+        } else {
+          console.log(err);
+        }
         return;
       }
       copyFiles(moduleName, path);

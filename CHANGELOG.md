@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Unreleased
+
+- Better log when a build is failing [#36](https://github.com/mapado/watch-module/pull/36)
+- Do not build if file content did not change on save (prevent the "mad savers" 😉) [#38](https://github.com/mapado/watch-module/pull/38)
+- Kill previous build if another change happen before the end [#39](https://github.com/mapado/watch-module/pull/39)
+
 ## 2.1.1
 
 - Fix excludes paths by removing trailing slash [#27](https://github.com/mapado/watch-module/pull/27)

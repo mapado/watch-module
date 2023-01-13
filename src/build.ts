@@ -108,6 +108,10 @@ export function buildPath(path: string): void {
         }
         return;
       }
+
+      // remove cache of previous build
+      delete currentlyBuildingModules[moduleName];
+
       copyFiles(moduleName, path);
     }
   );

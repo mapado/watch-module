@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import nodeProcess from 'process';
+import crypto from 'crypto';
 
 export const cwd = nodeProcess.cwd();
 
@@ -20,4 +21,11 @@ export function getModuleNameForPath(path: string): string {
   }
 
   return moduleNameByPath[path];
+}
+
+export function getFileHash(path: string): string {
+  return crypto
+    .createHash('sha256')
+    .update(fs.readFileSync(path))
+    .digest('hex');
 }

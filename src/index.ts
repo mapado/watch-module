@@ -5,6 +5,9 @@ import { debug, log } from './logging.js';
 import { buildPath, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
+import { getFileHash } from './utils.js';
+
+const fileHashCache: Record<string, string> = {};
 
 function main(): void {
   debug('arguments: ', argv);
@@ -59,8 +62,27 @@ function main(): void {
           );
         }
 
+        // generate hash for files
+        const newFileHash: string | null = ['add', 'change'].includes(_event)
+          ? getFileHash(path)
+          : null;
+
+        if (_event === 'change' && fileHashCache[path] === newFileHash) {
+          // file has not changed
+          debug(`file ${path} has been saved but the content did not changed.`);
+          return;
+        }
+
         if (_event === 'change') {
           debug(`File changes: ${path}`);
+        }
+
+        if (newFileHash) {
+          // save hash for next time
+          fileHashCache[path] = newFileHash;
+        } else if (_event === 'unlink') {
+          // or clear hash if file was deleted
+          delete fileHashCache[path];
         }
 
         onChange(modulePath);

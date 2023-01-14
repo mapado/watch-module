@@ -1,11 +1,15 @@
+import React from 'react';
 import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
-import { debug, log } from './logging.js';
+import { render } from 'ink';
+import { createLogger, debug, log } from './logging.js';
 import { buildPath, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
 import { getFileHash } from './utils.js';
+import Renderer from './Renderer.js';
+import EventEmitter from 'events';
 
 const fileHashCache: Record<string, string> = {};
 
@@ -93,6 +97,18 @@ function main(): void {
     Promise.all(restoreOldDirectories(modulePaths)).then(() => {
       process.exit();
     });
+  });
+
+  class MyEmitter extends EventEmitter {}
+
+  const emitter = new MyEmitter();
+
+  const logger = createLogger(emitter);
+
+  const renderApp = render(<Renderer logLines={logger.getLines()} />);
+
+  emitter.on('newLogLine', () => {
+    renderApp.rerender(<Renderer logLines={logger.getLines()} />);
   });
 }
 

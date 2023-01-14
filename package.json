@@ -24,7 +24,7 @@
     "fs-extra": "^11.1.0",
     "has-yarn": "^3.0.0",
     "ink": "^3.2.0",
-    "ink-tab": "^4.2.2",
+    "ink-tab": "^4.2.3",
     "ink-text-input": "^4.0.3",
     "minimist": "^1.2.6",
     "react": "^18.2.0"

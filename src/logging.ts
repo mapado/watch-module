@@ -6,10 +6,25 @@ import EventEmitter from 'events';
 const logDate = (): string =>
   chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
 
-export type LogLine = {
-  text: string;
-  type: 'log' | 'debug';
-};
+export interface LogLine {
+  text: string | string[];
+  level: 'info' | 'debug';
+  date: Date;
+  color?: Theme;
+}
+
+export interface InfoLogLine extends LogLine {
+  level: 'info';
+  moduleName: string;
+}
+
+export interface DebugLogLine extends LogLine {
+  level: 'debug';
+}
+
+export function isInfo(line: LogLine): line is InfoLogLine {
+  return line.level === 'info';
+}
 
 export class LogLines {
   private lines: LogLine[] = [];
@@ -20,8 +35,10 @@ export class LogLines {
     this.#eventEmitter = eventEmitter;
   }
 
-  public addLine(line: LogLine): void {
-    this.lines.push(line);
+  public addLine(line: Omit<InfoLogLine, 'date'>): void;
+  public addLine(line: Omit<DebugLogLine, 'date'>): void;
+  public addLine(line: Omit<LogLine, 'date'>): void {
+    this.lines.push({ ...line, date: new Date() });
     this.#eventEmitter.emit('newLogLine', line);
   }
 
@@ -39,23 +56,29 @@ export function createLogger(eventEmitter: EventEmitter): LogLines {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const debug = (...args: any[]): void => {
+export const debug = (...args: string[]): void => {
   if (argv.v || argv.verbose) {
     // console.debug(logDate(), chalk.hex(Theme.debug)('DEBUG'), ...args);
     logLines?.addLine({
-      type: 'debug',
-      text: [logDate(), chalk.hex(Theme.debug)('DEBUG'), ...args].join(' '),
+      level: 'debug',
+      text: args,
     });
   }
 };
 
 const logModuleName = chalk.hex(Theme.moduleName);
 
-export const log = (moduleName: string, ...args: string[]): void => {
+export const log = (
+  moduleName: string,
+  message: string | string[],
+  color?: Theme
+): void => {
   // console.log(logDate(), logModuleName(moduleName), ...args);
 
   logLines?.addLine({
-    type: 'log',
-    text: [logDate(), logModuleName(moduleName), ...args].join(' '),
+    color,
+    level: 'info',
+    text: message,
+    moduleName,
   });
 };

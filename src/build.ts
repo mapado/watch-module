@@ -60,7 +60,7 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
       )
     )
     .then(() => {
-      log(moduleName, chalk.hex(Theme.success)('module swapped'));
+      log(moduleName, 'module swapped', Theme.success);
     })
     .catch(console.error);
 }
@@ -101,7 +101,7 @@ export function buildPath(path: string): void {
         if (err.killed) {
           debug(`Old process for ${moduleName} killed.`);
         } else {
-          log(moduleName, chalk.hex(Theme.error)(err.message));
+          log(moduleName, err.message, Theme.error);
 
           console.log(chalk.hex(Theme.warn)(stdout));
           console.log(chalk.hex(Theme.error)(stderr));

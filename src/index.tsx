@@ -13,8 +13,14 @@ import EventEmitter from 'events';
 
 const fileHashCache: Record<string, string> = {};
 
+class MyEmitter extends EventEmitter {}
+
 function main(): void {
-  debug('arguments: ', argv);
+  const emitter = new MyEmitter();
+  const logger = createLogger(emitter);
+
+  console.log(argv);
+  debug('arguments: ', JSON.stringify(argv));
 
   /* ================== debounce & events ================== */
 
@@ -41,7 +47,7 @@ function main(): void {
   const excludesPaths = getExcludesPaths(modulePaths);
 
   if (!includesPaths.length) {
-    log('nothing to watch, exiting...');
+    log('watch-module', 'nothing to watch, exiting...');
   }
 
   chokidar
@@ -98,12 +104,6 @@ function main(): void {
       process.exit();
     });
   });
-
-  class MyEmitter extends EventEmitter {}
-
-  const emitter = new MyEmitter();
-
-  const logger = createLogger(emitter);
 
   const renderApp = render(<Renderer logLines={logger.getLines()} />);
 

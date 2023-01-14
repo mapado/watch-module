@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import TextInputCJS from 'ink-text-input';
-import { LogLine } from './logging';
+import { isInfo, LogLine } from './logging.js';
+import Theme from './theme.js';
 
 // @ts-expect-error
 const TextInput = TextInputCJS.default as typeof TextInputCJS;
@@ -9,6 +10,27 @@ const TextInput = TextInputCJS.default as typeof TextInputCJS;
 type Props = {
   logLines: LogLine[];
 };
+
+function LogLine({ line }: { line: LogLine }): JSX.Element {
+  return (
+    <Box>
+      <Box marginRight={1}>
+        <Text color={Theme.date}>{line.date.toISOString()}</Text>
+      </Box>
+      {line.level === 'debug' && (
+        <Box marginRight={1}>
+          <Text color={Theme.debug}>DEBUG</Text>
+        </Box>
+      )}
+      {isInfo(line) && (
+        <Box marginRight={1}>
+          <Text color={Theme.moduleName}>{line.moduleName}</Text>
+        </Box>
+      )}
+      <Text color={line.color}>{line.text}</Text>
+    </Box>
+  );
+}
 
 export default function Renderer({ logLines }: Props): JSX.Element {
   const [inputVisible, setInputVisible] = useState(false);
@@ -30,7 +52,7 @@ export default function Renderer({ logLines }: Props): JSX.Element {
   return (
     <Box flexDirection="column">
       {logLines.map((line, index) => {
-        return <Text key={index}>{line.text}</Text>;
+        return <LogLine key={index} line={line} />;
       })}
 
       <Box>

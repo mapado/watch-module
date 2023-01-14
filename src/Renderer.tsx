@@ -1,68 +1,128 @@
 import React, { useState } from 'react';
 import { Box, Text, useInput } from 'ink';
 import TextInputCJS from 'ink-text-input';
-import { isInfo, LogLine } from './logging.js';
+import { LogLine, LOG_LEVEL } from './logging.js';
 import Theme from './theme.js';
-
-// @ts-expect-error
-const TextInput = TextInputCJS.default as typeof TextInputCJS;
+import { Tab, Tabs } from 'ink-tab';
 
 type Props = {
+  moduleNameSet: Set<string>;
   logLines: LogLine[];
 };
 
 function colorFromLevel(level: LogLine['level']): Theme | undefined {
   switch (level) {
-    case 'debug':
+    case LOG_LEVEL.DEBUG:
       return Theme.debug;
-    case 'info':
+    case LOG_LEVEL.INFO:
       return Theme.moduleName;
-    case 'warn':
+    case LOG_LEVEL.WARN:
       return Theme.warn;
-    case 'error':
+    case LOG_LEVEL.ERROR:
       return Theme.error;
     default:
       return;
   }
 }
 
-function LogLine({ line }: { line: LogLine }): JSX.Element {
+let maxLogLevelLength: number | undefined;
+
+const getMaxLogLevelLength = () => {
+  if (!maxLogLevelLength) {
+    maxLogLevelLength = Math.max(
+      ...Object.values(LOG_LEVEL).map((level) => level.length)
+    );
+  }
+
+  return maxLogLevelLength;
+};
+
+type LineProps = { line: LogLine; displayModuleName: boolean; padEnd: number };
+
+function LogLine({ line, displayModuleName, padEnd }: LineProps): JSX.Element {
   return (
     <Box>
       <Box marginRight={1}>
         <Text color={Theme.date}>{line.date.toISOString()}</Text>
       </Box>
       <Box marginRight={1}>
-        <Text color={colorFromLevel(line.level)}>{line.moduleName}</Text>
+        <Text color={colorFromLevel(line.level)}>
+          {displayModuleName
+            ? line.moduleName.padEnd(padEnd)
+            : line.level.padEnd(padEnd)}
+        </Text>
       </Box>
       <Text color={line.color}>{line.text}</Text>
     </Box>
   );
 }
 
-export default function Renderer({ logLines }: Props): JSX.Element {
-  const [inputVisible, setInputVisible] = useState(false);
-  const [query, setQuery] = useState('');
+export default function Renderer({
+  logLines,
+  moduleNameSet,
+}: Props): JSX.Element {
+  // TODO will come next. See https://github.com/mapado/watch-module/issues/20
+  // const [inputVisible, setInputVisible] = useState(false);
+  // const [query, setQuery] = useState('');
+  const [activeTabName, setActiveTabName] = useState<string>('watch-module');
 
-  useInput((input, key) => {
-    if (input === 'a') {
-      // ask for input
-      setInputVisible(true);
+  // TODO will come next. See https://github.com/mapado/watch-module/issues/20
+  // useInput((input, key) => {
+  //   if (input === 'a') {
+  //     // ask for input
+  //     setInputVisible(true);
+  //   }
+
+  //   if (key.return) {
+  //     // hide input
+  //     setInputVisible(false);
+  //     console.log(query);
+  //   }
+  // });
+
+  const handleTabChange = (tabName: string) => {
+    setActiveTabName(tabName);
+  };
+
+  const filterActiveModule = (line: LogLine) => {
+    if (activeTabName === null || activeTabName === 'watch-module') {
+      return true;
     }
 
-    if (key.return) {
-      // hide input
-      setInputVisible(false);
-      console.log(query);
-    }
-  });
+    return line.moduleName === activeTabName;
+  };
+
+  const moduleNames = ['watch-module', ...moduleNameSet];
+  const moduleNameMaxLength = Math.max(
+    ...moduleNames.map((moduleName) => moduleName.length)
+  );
 
   return (
     <Box flexDirection="column">
-      {logLines.map((line, index) => {
-        return <LogLine key={index} line={line} />;
+      {logLines.filter(filterActiveModule).map((line, index) => {
+        return (
+          <LogLine
+            key={index}
+            line={line}
+            displayModuleName={activeTabName === 'watch-module'}
+            padEnd={
+              activeTabName === 'watch-module'
+                ? moduleNameMaxLength
+                : getMaxLogLevelLength()
+            }
+          />
+        );
       })}
 
+      <Tabs onChange={handleTabChange}>
+        {moduleNames.map((moduleName) => (
+          <Tab key={moduleName} name={moduleName}>
+            {moduleName}
+          </Tab>
+        ))}
+      </Tabs>
+
+      {/* TODO will come next. See https://github.com/mapado/watch-module/issues/20
       <Box>
         {inputVisible ? (
           <>
@@ -75,7 +135,7 @@ export default function Renderer({ logLines }: Props): JSX.Element {
         ) : (
           <Text italic>Press "a" to add another package to watch</Text>
         )}
-      </Box>
+      </Box> */}
     </Box>
   );
 }

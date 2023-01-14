@@ -4,20 +4,19 @@ import EventEmitter from 'events';
 
 type ModuleName = 'watch-module' | string;
 
+export enum LOG_LEVEL {
+  INFO = 'INFO',
+  DEBUG = 'DEBUG',
+  ERROR = 'ERROR',
+  WARN = 'WARN',
+}
+
 export interface LogLine {
   date: Date;
-  level: 'info' | 'debug' | 'error' | 'warn';
+  level: LOG_LEVEL;
   moduleName: ModuleName;
   text: string;
   color?: Theme;
-}
-
-export interface InfoLogLine extends LogLine {
-  level: 'info';
-}
-
-export function isInfo(line: LogLine): line is InfoLogLine {
-  return line.level === 'info';
 }
 
 export class LogLines {
@@ -29,8 +28,6 @@ export class LogLines {
     this.#eventEmitter = eventEmitter;
   }
 
-  public addLine(line: Omit<InfoLogLine, 'date'>): void;
-  public addLine(line: Omit<LogLine, 'date'>): void;
   public addLine(line: Omit<LogLine, 'date'>): void {
     this.lines.push({ ...line, date: new Date() });
     this.#eventEmitter.emit('newLogLine', line);
@@ -53,7 +50,7 @@ export function createLogger(eventEmitter: EventEmitter): LogLines {
 export const debug = (moduleName: ModuleName, text: string): void => {
   if (argv.v || argv.verbose) {
     logLines?.addLine({
-      level: 'debug',
+      level: LOG_LEVEL.DEBUG,
       text,
       moduleName,
     });
@@ -67,7 +64,7 @@ export const log = (
 ): void => {
   logLines?.addLine({
     color,
-    level: 'info',
+    level: LOG_LEVEL.INFO,
     text: message,
     moduleName,
   });
@@ -75,7 +72,7 @@ export const log = (
 
 export function error(moduleName: ModuleName, message: ModuleName): void {
   logLines?.addLine({
-    level: 'error',
+    level: LOG_LEVEL.ERROR,
     moduleName,
     text: message,
     color: Theme.error,
@@ -84,7 +81,7 @@ export function error(moduleName: ModuleName, message: ModuleName): void {
 
 export function warn(moduleName: ModuleName, message: ModuleName): void {
   logLines?.addLine({
-    level: 'warn',
+    level: LOG_LEVEL.WARN,
     moduleName,
     text: message,
     color: Theme.warn,

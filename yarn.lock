@@ -747,6 +747,11 @@ inherits@2:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
+ink-tab@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/ink-tab/-/ink-tab-4.2.2.tgz#908a807733d8dbc62ba5afd3bc5505176c1a98d0"
+  integrity sha512-wG71OBeo+mU7UStplIzXNxMwlwtlmsiPLc0Q2EoFUgWfP4Jt7mZH407EIBmbiOPHywO6HTBiRjj4U+DdEQBuaQ==
+
 ink-text-input@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/ink-text-input/-/ink-text-input-4.0.3.tgz#6348fef942e74b06a465f98851706516a1e2be8d"

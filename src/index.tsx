@@ -49,6 +49,8 @@ function main(): void {
     log('watch-module', 'nothing to watch, exiting...');
   }
 
+  const moduleNameSet = new Set<string>();
+
   chokidar
     // One-liner for current directory, ignores .dotfiles
     .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })
@@ -72,6 +74,8 @@ function main(): void {
         }
 
         const moduleName = getModuleNameForPath(modulePath);
+
+        moduleNameSet.add(moduleName);
 
         // generate hash for files
         const newFileHash: string | null = ['add', 'change'].includes(_event)
@@ -109,10 +113,14 @@ function main(): void {
     });
   });
 
-  const renderApp = render(<Renderer logLines={logger.getLines()} />);
+  const renderApp = render(
+    <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+  );
 
   emitter.on('newLogLine', () => {
-    renderApp.rerender(<Renderer logLines={logger.getLines()} />);
+    renderApp.rerender(
+      <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+    );
   });
 }
 

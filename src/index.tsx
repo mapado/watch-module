@@ -51,61 +51,65 @@ function main(): void {
 
   const moduleNameSet = new Set<string>();
 
-  chokidar
-    // One-liner for current directory, ignores .dotfiles
-    .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })
-    .on(
-      'all',
-      (
-        _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
-        path: string
-      ) => {
-        const modulePath = modulePaths.find((tmpPath: string) => {
-          return (
-            // check if path starts with the module path
-            path.startsWith(`${tmpPath}/`)
-          );
-        });
+  function watchPaths(includesPaths: string[], excludesPaths: string[]): void {
+    chokidar
+      // One-liner for current directory, ignores .dotfiles
+      .watch(includesPaths, { ignored: [/(^|[/\\])\.[^./]/, ...excludesPaths] })
+      .on(
+        'all',
+        (
+          _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
+          path: string
+        ) => {
+          const modulePath = modulePaths.find((tmpPath: string) => {
+            return (
+              // check if path starts with the module path
+              path.startsWith(`${tmpPath}/`)
+            );
+          });
 
-        if (!modulePath) {
-          throw new Error(
-            'Unable to find module path. This should not happen.'
-          );
+          if (!modulePath) {
+            throw new Error(
+              'Unable to find module path. This should not happen.'
+            );
+          }
+
+          const moduleName = getModuleNameForPath(modulePath);
+
+          moduleNameSet.add(moduleName);
+
+          // generate hash for files
+          const newFileHash: string | null = ['add', 'change'].includes(_event)
+            ? getFileHash(path)
+            : null;
+
+          if (_event === 'change' && fileHashCache[path] === newFileHash) {
+            // file has not changed
+            debug(
+              moduleName,
+              `file ${path} has been saved but the content did not changed.`
+            );
+            return;
+          }
+
+          if (_event === 'change') {
+            debug(moduleName, `File changes: ${path}`);
+          }
+
+          if (newFileHash) {
+            // save hash for next time
+            fileHashCache[path] = newFileHash;
+          } else if (_event === 'unlink') {
+            // or clear hash if file was deleted
+            delete fileHashCache[path];
+          }
+
+          onChange(modulePath);
         }
+      );
+  }
 
-        const moduleName = getModuleNameForPath(modulePath);
-
-        moduleNameSet.add(moduleName);
-
-        // generate hash for files
-        const newFileHash: string | null = ['add', 'change'].includes(_event)
-          ? getFileHash(path)
-          : null;
-
-        if (_event === 'change' && fileHashCache[path] === newFileHash) {
-          // file has not changed
-          debug(
-            moduleName,
-            `file ${path} has been saved but the content did not changed.`
-          );
-          return;
-        }
-
-        if (_event === 'change') {
-          debug(moduleName, `File changes: ${path}`);
-        }
-
-        if (newFileHash) {
-          // save hash for next time
-          fileHashCache[path] = newFileHash;
-        } else if (_event === 'unlink') {
-          // or clear hash if file was deleted
-          delete fileHashCache[path];
-        }
-
-        onChange(modulePath);
-      }
-    );
+  watchPaths(includesPaths, excludesPaths);
 
   process.on('SIGINT', () => {
     Promise.all(restoreOldDirectories(modulePaths)).then(() => {
@@ -113,13 +117,27 @@ function main(): void {
     });
   });
 
+  function watchNewPath(modulePath: string): void {
+    modulePaths.push(modulePath);
+
+    watchPaths(getIncludesPaths([modulePath]), getExcludesPaths([modulePath]));
+  }
+
   const renderApp = render(
-    <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+    <Renderer
+      moduleNameSet={moduleNameSet}
+      logLines={logger.getLines()}
+      onAddNewPath={watchNewPath}
+    />
   );
 
   emitter.on('newLogLine', () => {
     renderApp.rerender(
-      <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+      <Renderer
+        moduleNameSet={moduleNameSet}
+        logLines={logger.getLines()}
+        onAddNewPath={watchNewPath}
+      />
     );
   });
 }

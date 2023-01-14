@@ -3,7 +3,7 @@ import { ChildProcess, exec } from 'child_process';
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import Theme from './theme.js';
-import { debug, log } from './logging.js';
+import { debug, error, log, warn } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
 import { getModuleNameForPath } from './utils.js';
 
@@ -103,8 +103,8 @@ export function buildPath(path: string): void {
         } else {
           log(moduleName, err.message, Theme.error);
 
-          console.log(chalk.hex(Theme.warn)(stdout));
-          console.log(chalk.hex(Theme.error)(stderr));
+          warn(stdout);
+          error(stderr);
         }
         return;
       }

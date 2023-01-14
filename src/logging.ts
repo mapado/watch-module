@@ -8,7 +8,7 @@ const logDate = (): string =>
 
 export interface LogLine {
   text: string | string[];
-  level: 'info' | 'debug';
+  level: 'info' | 'debug' | 'error' | 'warn';
   date: Date;
   color?: Theme;
 }
@@ -16,10 +16,6 @@ export interface LogLine {
 export interface InfoLogLine extends LogLine {
   level: 'info';
   moduleName: string;
-}
-
-export interface DebugLogLine extends LogLine {
-  level: 'debug';
 }
 
 export function isInfo(line: LogLine): line is InfoLogLine {
@@ -36,7 +32,7 @@ export class LogLines {
   }
 
   public addLine(line: Omit<InfoLogLine, 'date'>): void;
-  public addLine(line: Omit<DebugLogLine, 'date'>): void;
+  public addLine(line: Omit<LogLine, 'date'>): void;
   public addLine(line: Omit<LogLine, 'date'>): void {
     this.lines.push({ ...line, date: new Date() });
     this.#eventEmitter.emit('newLogLine', line);
@@ -82,3 +78,19 @@ export const log = (
     moduleName,
   });
 };
+
+export function error(message: string): void {
+  logLines?.addLine({
+    level: 'error',
+    text: message,
+    color: Theme.error,
+  });
+}
+
+export function warn(message: string): void {
+  logLines?.addLine({
+    level: 'warn',
+    text: message,
+    color: Theme.warn,
+  });
+}

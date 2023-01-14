@@ -19,7 +19,6 @@
   "repository": "https://github.com/mapado/watch-module",
   "license": "MIT",
   "dependencies": {
-    "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "debounce": "^1.2.1",
     "fs-extra": "^11.1.0",

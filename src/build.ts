@@ -1,7 +1,6 @@
 import nodeProcess from 'process';
 import { ChildProcess, exec } from 'child_process';
 import fs from 'fs-extra';
-import chalk from 'chalk';
 import Theme from './theme.js';
 import { debug, error, log, warn } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';

@@ -1,10 +1,6 @@
-import chalk from 'chalk';
 import Theme from './theme.js';
 import argv from './argv.js';
 import EventEmitter from 'events';
-
-const logDate = (): string =>
-  chalk.hex(Theme.date)(`[${new Date().toISOString()}]`);
 
 export interface LogLine {
   text: string | string[];
@@ -54,7 +50,6 @@ export function createLogger(eventEmitter: EventEmitter): LogLines {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debug = (...args: string[]): void => {
   if (argv.v || argv.verbose) {
-    // console.debug(logDate(), chalk.hex(Theme.debug)('DEBUG'), ...args);
     logLines?.addLine({
       level: 'debug',
       text: args,
@@ -62,15 +57,11 @@ export const debug = (...args: string[]): void => {
   }
 };
 
-const logModuleName = chalk.hex(Theme.moduleName);
-
 export const log = (
   moduleName: string,
   message: string | string[],
   color?: Theme
 ): void => {
-  // console.log(logDate(), logModuleName(moduleName), ...args);
-
   logLines?.addLine({
     color,
     level: 'info',

@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import hasYarn from 'has-yarn';
-import chalk from 'chalk';
 import { log } from './logging.js';
 import Theme from './theme.js';
 import { getModuleNameForPath, getModuleFullPath } from './utils.js';

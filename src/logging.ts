@@ -2,16 +2,18 @@ import Theme from './theme.js';
 import argv from './argv.js';
 import EventEmitter from 'events';
 
+type ModuleName = 'watch-module' | string;
+
 export interface LogLine {
-  text: string | string[];
-  level: 'info' | 'debug' | 'error' | 'warn';
   date: Date;
+  level: 'info' | 'debug' | 'error' | 'warn';
+  moduleName: ModuleName;
+  text: string;
   color?: Theme;
 }
 
 export interface InfoLogLine extends LogLine {
   level: 'info';
-  moduleName: string;
 }
 
 export function isInfo(line: LogLine): line is InfoLogLine {
@@ -48,18 +50,19 @@ export function createLogger(eventEmitter: EventEmitter): LogLines {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const debug = (...args: string[]): void => {
+export const debug = (moduleName: ModuleName, text: string): void => {
   if (argv.v || argv.verbose) {
     logLines?.addLine({
       level: 'debug',
-      text: args,
+      text,
+      moduleName,
     });
   }
 };
 
 export const log = (
   moduleName: string,
-  message: string | string[],
+  message: ModuleName,
   color?: Theme
 ): void => {
   logLines?.addLine({
@@ -70,17 +73,19 @@ export const log = (
   });
 };
 
-export function error(message: string): void {
+export function error(moduleName: ModuleName, message: ModuleName): void {
   logLines?.addLine({
     level: 'error',
+    moduleName,
     text: message,
     color: Theme.error,
   });
 }
 
-export function warn(message: string): void {
+export function warn(moduleName: ModuleName, message: ModuleName): void {
   logLines?.addLine({
     level: 'warn',
+    moduleName,
     text: message,
     color: Theme.warn,
   });

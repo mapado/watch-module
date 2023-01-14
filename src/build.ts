@@ -27,7 +27,10 @@ function backupModule(moduleName: string, modulePath: string): void {
     return;
   }
 
-  debug(`Create backup directory for "${moduleName}" and save files`);
+  debug(
+    moduleName,
+    `Create backup directory for "${moduleName}" and save files`
+  );
 
   // copy dir to backup version
   if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
@@ -72,22 +75,22 @@ const currentlyBuildingModules: Record<string, ChildProcess> = {};
 export function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(moduleName, 'Change detected');
-  debug(`Build "${moduleName}" package`);
+  debug(moduleName, `Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
-    debug(`kill old process for ${moduleName}...`);
+    debug(moduleName, `kill old process for ${moduleName}...`);
     currentlyBuildingModules[moduleName].kill();
   }
 
   const command = getModuleCommandForPath(path);
 
   if (!command) {
-    debug(`No command, copy files`);
+    debug(moduleName, 'No command, copy files');
     copyFiles(moduleName, path);
     return;
   }
 
-  debug(`Command is "${command}", run and copy files`);
+  debug(moduleName, `Command is "${command}", run and copy files`);
 
   currentlyBuildingModules[moduleName] = exec(
     command,
@@ -98,12 +101,12 @@ export function buildPath(path: string): void {
     (err, stdout, stderr) => {
       if (err) {
         if (err.killed) {
-          debug(`Old process for ${moduleName} killed.`);
+          debug(moduleName, `Old process for ${moduleName} killed.`);
         } else {
           log(moduleName, err.message, Theme.error);
 
-          warn(stdout);
-          error(stderr);
+          warn(moduleName, stdout);
+          error(moduleName, stderr);
         }
         return;
       }

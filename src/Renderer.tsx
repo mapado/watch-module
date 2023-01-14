@@ -11,22 +11,30 @@ type Props = {
   logLines: LogLine[];
 };
 
+function colorFromLevel(level: LogLine['level']): Theme | undefined {
+  switch (level) {
+    case 'debug':
+      return Theme.debug;
+    case 'info':
+      return Theme.moduleName;
+    case 'warn':
+      return Theme.warn;
+    case 'error':
+      return Theme.error;
+    default:
+      return;
+  }
+}
+
 function LogLine({ line }: { line: LogLine }): JSX.Element {
   return (
     <Box>
       <Box marginRight={1}>
         <Text color={Theme.date}>{line.date.toISOString()}</Text>
       </Box>
-      {line.level === 'debug' && (
-        <Box marginRight={1}>
-          <Text color={Theme.debug}>DEBUG</Text>
-        </Box>
-      )}
-      {isInfo(line) && (
-        <Box marginRight={1}>
-          <Text color={Theme.moduleName}>{line.moduleName}</Text>
-        </Box>
-      )}
+      <Box marginRight={1}>
+        <Text color={colorFromLevel(line.level)}>{line.moduleName}</Text>
+      </Box>
       <Text color={line.color}>{line.text}</Text>
     </Box>
   );

@@ -7,7 +7,7 @@ import { createLogger, debug, log } from './logging.js';
 import { buildPath, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
-import { getFileHash } from './utils.js';
+import { getFileHash, getModuleNameForPath } from './utils.js';
 import Renderer from './Renderer.js';
 import EventEmitter from 'events';
 
@@ -19,8 +19,7 @@ function main(): void {
   const emitter = new MyEmitter();
   const logger = createLogger(emitter);
 
-  console.log(argv);
-  debug('arguments: ', JSON.stringify(argv));
+  debug('watch-module', JSON.stringify(argv));
 
   /* ================== debounce & events ================== */
 
@@ -72,6 +71,8 @@ function main(): void {
           );
         }
 
+        const moduleName = getModuleNameForPath(modulePath);
+
         // generate hash for files
         const newFileHash: string | null = ['add', 'change'].includes(_event)
           ? getFileHash(path)
@@ -79,12 +80,15 @@ function main(): void {
 
         if (_event === 'change' && fileHashCache[path] === newFileHash) {
           // file has not changed
-          debug(`file ${path} has been saved but the content did not changed.`);
+          debug(
+            moduleName,
+            `file ${path} has been saved but the content did not changed.`
+          );
           return;
         }
 
         if (_event === 'change') {
-          debug(`File changes: ${path}`);
+          debug(moduleName, `File changes: ${path}`);
         }
 
         if (newFileHash) {

@@ -4,7 +4,7 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "node",
-    "module": "node16",
+    "module": "es2020", // can be changed to node16 when support for node 14 is dropped
     "esModuleInterop": true,
     "target": "es2020",
     "allowJs": true,

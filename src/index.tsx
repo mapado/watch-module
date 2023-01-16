@@ -3,7 +3,7 @@ import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
 import { render } from 'ink';
-import { createLogger, debug, log } from './logging.js';
+import { createLogger, debug, error, log } from './logging.js';
 import { buildPath, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
@@ -128,7 +128,20 @@ function main(): void {
   function watchNewPath(modulePath: string): void {
     modulePaths.push(modulePath);
 
-    watchPaths(getIncludesPaths([modulePath]), getExcludesPaths([modulePath]));
+    try {
+      watchPaths(
+        getIncludesPaths([modulePath]),
+        getExcludesPaths([modulePath])
+      );
+    } catch (e) {
+      // remove the last entry
+      modulePaths.pop();
+
+      error(
+        'watch-module',
+        `Unable to watch new path "${modulePath}": either the path does not exist, or it does not contain a valid module`
+      );
+    }
   }
 
   const renderApp = render(

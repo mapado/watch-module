@@ -136,7 +136,14 @@ export default function Renderer({
         );
       })}
 
-      <Tabs onChange={handleTabChange}>
+      <Tabs
+        onChange={handleTabChange}
+        colors={{
+          activeTab: {
+            color: Theme.moduleName,
+          },
+        }}
+      >
         {moduleNames.map((moduleName) => (
           <Tab key={moduleName} name={moduleName}>
             {moduleName}

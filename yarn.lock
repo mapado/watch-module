@@ -747,10 +747,10 @@ inherits@2:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-ink-tab@^4.2.3:
-  version "4.2.3"
-  resolved "https://registry.yarnpkg.com/ink-tab/-/ink-tab-4.2.3.tgz#ed2acb75050bad6edea388849bcb964ae38bb9c9"
-  integrity sha512-gEGeaPds1kCW2kT4yndOSbP4+NP8eI74Hi/ZVUeph7D3qhO+XRAOtDCEm9WxnM3HE4YOgTuWsJ1EpgSP4Z1OhQ==
+ink-tab@^4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/ink-tab/-/ink-tab-4.3.1.tgz#caddbfeae0fbd4797dcdfe27a23eb39048baf014"
+  integrity sha512-sixiAtQU/4enR3oJS8fSxFA/Y0Tl8JrCtOZIvhJ2ktCFodZYMnS550TxnGMlh0ayVAKKkxHt60OPj399vAiHcg==
 
 ink-text-input@^4.0.3:
   version "4.0.3"

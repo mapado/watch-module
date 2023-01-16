@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 2.2.1
+
+- Try to fix build issue with peerDeps
+- better tab color
+
 ## 2.2.0
 
 ### Configuration

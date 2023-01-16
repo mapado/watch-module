@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useApp, useInput } from 'ink';
 import TextInputCJS from 'ink-text-input';
 import { LogLine, LOG_LEVEL } from './logging.js';
 import Theme from './theme.js';
 import { Tab, Tabs } from 'ink-tab';
 
+// @ts-expect-error -- issue with ink-text-input and CommonJS definition
+const TextInput = TextInputCJS.default as typeof TextInputCJS;
+
 type Props = {
   moduleNameSet: Set<string>;
   logLines: LogLine[];
+  onAddNewPath: (pathName: string) => void;
+  onExit: () => void;
 };
 
 function colorFromLevel(level: LogLine['level']): Theme | undefined {
@@ -60,25 +65,42 @@ function LogLine({ line, displayModuleName, padEnd }: LineProps): JSX.Element {
 export default function Renderer({
   logLines,
   moduleNameSet,
+  onAddNewPath,
+  onExit,
 }: Props): JSX.Element {
-  // TODO will come next. See https://github.com/mapado/watch-module/issues/20
-  // const [inputVisible, setInputVisible] = useState(false);
-  // const [query, setQuery] = useState('');
+  const { exit } = useApp();
+  const [inputVisible, setInputVisible] = useState(false);
+  const [query, setQuery] = useState('');
   const [activeTabName, setActiveTabName] = useState<string>('watch-module');
 
-  // TODO will come next. See https://github.com/mapado/watch-module/issues/20
-  // useInput((input, key) => {
-  //   if (input === 'a') {
-  //     // ask for input
-  //     setInputVisible(true);
-  //   }
+  useInput((input, key) => {
+    if (input === 'a') {
+      // ask for input
+      setInputVisible(true);
+    }
 
-  //   if (key.return) {
-  //     // hide input
-  //     setInputVisible(false);
-  //     console.log(query);
-  //   }
-  // });
+    if (input === 'c' && key.ctrl) {
+      if (inputVisible) {
+        // hide input when pressing ctrl+c while input is visible
+        setInputVisible(false);
+
+        return;
+      }
+
+      // tell ink renderer to exit
+      exit();
+
+      // notify watch-module to cleanup and exit
+      onExit();
+    }
+
+    if (key.return) {
+      // hide input
+      setInputVisible(false);
+
+      onAddNewPath(query);
+    }
+  });
 
   const handleTabChange = (tabName: string) => {
     setActiveTabName(tabName);
@@ -122,20 +144,19 @@ export default function Renderer({
         ))}
       </Tabs>
 
-      {/* TODO will come next. See https://github.com/mapado/watch-module/issues/20
       <Box>
         {inputVisible ? (
           <>
-            <Box marginRight={1}>
-              <Text>Enter your query:</Text>
-            </Box>
+            <Text>Enter path: </Text>
 
             <TextInput value={query} onChange={setQuery} />
           </>
         ) : (
-          <Text italic>Press "a" to add another package to watch</Text>
+          <Text italic>
+            Press "a" to add another package to watch, "ctrl+c" to quit
+          </Text>
         )}
-      </Box> */}
+      </Box>
     </Box>
   );
 }

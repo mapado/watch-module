@@ -1,16 +1,25 @@
+import React from 'react';
 import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
-import { debug, log } from './logging.js';
+import { render } from 'ink';
+import { createLogger, debug, log } from './logging.js';
 import { buildPath, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
-import { getFileHash } from './utils.js';
+import { getFileHash, getModuleNameForPath } from './utils.js';
+import Renderer from './Renderer.js';
+import EventEmitter from 'events';
 
 const fileHashCache: Record<string, string> = {};
 
+class MyEmitter extends EventEmitter {}
+
 function main(): void {
-  debug('arguments: ', argv);
+  const emitter = new MyEmitter();
+  const logger = createLogger(emitter);
+
+  debug('watch-module', JSON.stringify(argv));
 
   /* ================== debounce & events ================== */
 
@@ -37,8 +46,10 @@ function main(): void {
   const excludesPaths = getExcludesPaths(modulePaths);
 
   if (!includesPaths.length) {
-    log('nothing to watch, exiting...');
+    log('watch-module', 'nothing to watch, exiting...');
   }
+
+  const moduleNameSet = new Set<string>();
 
   chokidar
     // One-liner for current directory, ignores .dotfiles
@@ -62,6 +73,10 @@ function main(): void {
           );
         }
 
+        const moduleName = getModuleNameForPath(modulePath);
+
+        moduleNameSet.add(moduleName);
+
         // generate hash for files
         const newFileHash: string | null = ['add', 'change'].includes(_event)
           ? getFileHash(path)
@@ -69,12 +84,15 @@ function main(): void {
 
         if (_event === 'change' && fileHashCache[path] === newFileHash) {
           // file has not changed
-          debug(`file ${path} has been saved but the content did not changed.`);
+          debug(
+            moduleName,
+            `file ${path} has been saved but the content did not changed.`
+          );
           return;
         }
 
         if (_event === 'change') {
-          debug(`File changes: ${path}`);
+          debug(moduleName, `File changes: ${path}`);
         }
 
         if (newFileHash) {
@@ -93,6 +111,16 @@ function main(): void {
     Promise.all(restoreOldDirectories(modulePaths)).then(() => {
       process.exit();
     });
+  });
+
+  const renderApp = render(
+    <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+  );
+
+  emitter.on('newLogLine', () => {
+    renderApp.rerender(
+      <Renderer moduleNameSet={moduleNameSet} logLines={logger.getLines()} />
+    );
   });
 }
 

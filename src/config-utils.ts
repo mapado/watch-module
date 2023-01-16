@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import hasYarn from 'has-yarn';
-import chalk from 'chalk';
 import { log } from './logging.js';
 import Theme from './theme.js';
 import { getModuleNameForPath, getModuleFullPath } from './utils.js';
@@ -40,7 +39,10 @@ function createDefaultConfig(): void {
   if (fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
     return;
   }
-  log('creating config file: ', `${configPath}/${CONFIG_FILE_NAME}`);
+  log(
+    'watch-module',
+    `creating config file: ${configPath}/${CONFIG_FILE_NAME}`
+  );
   fs.mkdirSync(configPath, { recursive: true });
   fs.closeSync(fs.openSync(`${configPath}/${CONFIG_FILE_NAME}`, 'w'));
 }
@@ -101,8 +103,7 @@ export function getModuleConfigEntry(modulePath: string): ConfigEntry {
       ...packageJson['watch-module'],
     };
     moduleConfigCache[moduleName] = packageJsonConfig;
-
-    log(moduleName, chalk.hex(Theme.info)('using package.json config'));
+    log(moduleName, 'using package.json config', Theme.info);
 
     return packageJsonConfig;
   }
@@ -117,15 +118,14 @@ export function getModuleConfigEntry(modulePath: string): ConfigEntry {
     };
 
     moduleConfigCache[moduleName] = globalConfigWithDefault;
-    log(moduleName, chalk.hex(Theme.info)('using global config'));
+    log(moduleName, 'using global config', Theme.info);
 
     return globalConfigWithDefault;
   }
 
   // no config was found, return default config
   moduleConfigCache[moduleName] = defaultConfig;
-
-  log(moduleName, chalk.hex(Theme.info)('using default config'));
+  log(moduleName, 'using default config', Theme.info);
 
   return defaultConfig;
 }

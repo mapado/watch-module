@@ -1,9 +1,8 @@
 import nodeProcess from 'process';
 import { ChildProcess, exec } from 'child_process';
 import fs from 'fs-extra';
-import chalk from 'chalk';
 import Theme from './theme.js';
-import { debug, log } from './logging.js';
+import { debug, error, log, warn } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
 import { getModuleNameForPath } from './utils.js';
 
@@ -29,7 +28,10 @@ function backupModule(moduleName: string, modulePath: string): void {
     return;
   }
 
-  debug(`Create backup directory for "${moduleName}" and save files`);
+  debug(
+    moduleName,
+    `Create backup directory for "${moduleName}" and save files`
+  );
 
   // copy dir to backup version
   if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
@@ -61,7 +63,7 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
       )
     )
     .then(() => {
-      log(moduleName, chalk.hex(Theme.success)('module swapped'));
+      log(moduleName, 'module swapped', Theme.success);
     })
     .catch(console.error);
 }
@@ -74,22 +76,22 @@ const currentlyBuildingModules: Record<string, ChildProcess> = {};
 export function buildPath(path: string): void {
   const moduleName = getModuleNameForPath(path);
   log(moduleName, 'Change detected');
-  debug(`Build "${moduleName}" package`);
+  debug(moduleName, `Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
-    debug(`kill old process for ${moduleName}...`);
+    debug(moduleName, `kill old process for ${moduleName}...`);
     currentlyBuildingModules[moduleName].kill();
   }
 
   const command = getModuleCommandForPath(path);
 
   if (!command) {
-    debug(`No command, copy files`);
+    debug(moduleName, 'No command, copy files');
     copyFiles(moduleName, path);
     return;
   }
 
-  debug(`Command is "${command}", run and copy files`);
+  debug(moduleName, `Command is "${command}", run and copy files`);
 
   currentlyBuildingModules[moduleName] = exec(
     command,
@@ -100,12 +102,12 @@ export function buildPath(path: string): void {
     (err, stdout, stderr) => {
       if (err) {
         if (err.killed) {
-          debug(`Old process for ${moduleName} killed.`);
+          debug(moduleName, `Old process for ${moduleName} killed.`);
         } else {
-          log(moduleName, chalk.hex(Theme.error)(err.message));
+          log(moduleName, err.message, Theme.error);
 
-          console.log(chalk.hex(Theme.warn)(stdout));
-          console.log(chalk.hex(Theme.error)(stderr));
+          warn(moduleName, stdout);
+          error(moduleName, stderr);
         }
         return;
       }

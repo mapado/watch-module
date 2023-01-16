@@ -11,8 +11,9 @@ export const cwd = nodeProcess.cwd();
 /**
  * get the command to call for the package
  */
-function getModuleCommandForPath(path: string): string | void {
+function getModuleCommandForPath(path: string): string | null | undefined {
   const moduleConfig = getModuleConfigEntry(path);
+
   return moduleConfig.command;
 }
 

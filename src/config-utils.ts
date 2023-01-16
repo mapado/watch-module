@@ -18,7 +18,7 @@ type Config = {
 type ConfigEntry = {
   includes?: string[];
   excludes?: string[];
-  command?: string;
+  command?: string | Record<string, string>;
 };
 
 function getGlobalConfigPath(): string | void {

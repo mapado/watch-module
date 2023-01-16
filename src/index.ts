@@ -2,7 +2,7 @@ import process from 'process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
 import { debug, log } from './logging.js';
-import { buildPath, restoreOldDirectories } from './build.js';
+import { buildModule, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
 import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
 import { getFileHash } from './utils.js';
@@ -15,14 +15,27 @@ function main(): void {
   /* ================== debounce & events ================== */
 
   const changedModules: Set<string> = new Set();
+  const changedPathsByMoodule: Map<string, Set<string>> = new Map();
   function buildAll(): void {
-    changedModules.forEach(buildPath);
+    changedModules.forEach((module) =>
+      buildModule(module, changedPathsByMoodule.get(module) || new Set())
+    );
     changedModules.clear();
+    changedPathsByMoodule.clear();
   }
 
   const debouncedOnChangeAll = debounce(buildAll, 200);
-  function onChange(modulePath: string): void {
+  function onChange(modulePath: string, path: string): void {
     changedModules.add(modulePath);
+
+    const pathSet = changedPathsByMoodule.get(modulePath);
+
+    if (pathSet) {
+      pathSet.add(path);
+    } else {
+      changedPathsByMoodule.set(modulePath, new Set([path]));
+    }
+
     debouncedOnChangeAll();
   }
 
@@ -49,10 +62,10 @@ function main(): void {
         _event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir',
         path: string
       ) => {
-        const modulePath = modulePaths.find((tmpPath: string) => {
+        const modulePath = modulePaths.find((innerModulePath: string) => {
           return (
             // check if path starts with the module path
-            path.startsWith(`${tmpPath}/`)
+            path.startsWith(`${innerModulePath}/`)
           );
         });
 
@@ -85,7 +98,7 @@ function main(): void {
           delete fileHashCache[path];
         }
 
-        onChange(modulePath);
+        onChange(modulePath, path);
       }
     );
 

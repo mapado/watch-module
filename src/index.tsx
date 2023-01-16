@@ -111,10 +111,18 @@ function main(): void {
 
   watchPaths(includesPaths, excludesPaths);
 
-  process.on('SIGINT', () => {
+  function beforeExit(): void {
     Promise.all(restoreOldDirectories(modulePaths)).then(() => {
       process.exit();
     });
+  }
+
+  process.on('SIGINT', () => {
+    beforeExit();
+  });
+
+  process.on('SIGTERM', () => {
+    beforeExit();
   });
 
   function watchNewPath(modulePath: string): void {
@@ -128,7 +136,11 @@ function main(): void {
       moduleNameSet={moduleNameSet}
       logLines={logger.getLines()}
       onAddNewPath={watchNewPath}
-    />
+      onExit={beforeExit}
+    />,
+    {
+      exitOnCtrlC: false,
+    }
   );
 
   emitter.on('newLogLine', () => {
@@ -137,6 +149,7 @@ function main(): void {
         moduleNameSet={moduleNameSet}
         logLines={logger.getLines()}
         onAddNewPath={watchNewPath}
+        onExit={beforeExit}
       />
     );
   });

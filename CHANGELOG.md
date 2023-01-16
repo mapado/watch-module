@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.2.2
+
+- allow react 17 as ink uses an old reconcilier that thoes not support react 18 for now
+
 ## 2.2.1
 
 - Try to fix build issue with peerDeps

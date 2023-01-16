@@ -10,6 +10,7 @@
     "build": "tsc"
   },
   "watch-module": {
+    "command": "yarn build",
     "includes": [
       "index.ts"
     ]

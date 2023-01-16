@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import hasYarn from 'has-yarn';
-import chalk from 'chalk';
 import { log } from './logging.js';
 import Theme from './theme.js';
 import { getModuleNameForPath, getModuleFullPath } from './utils.js';
@@ -40,7 +39,10 @@ function createDefaultConfig(): void {
   if (fs.existsSync(`${configPath}/${CONFIG_FILE_NAME}`)) {
     return;
   }
-  log('creating config file: ', `${configPath}/${CONFIG_FILE_NAME}`);
+  log(
+    'watch-module',
+    `creating config file: ${configPath}/${CONFIG_FILE_NAME}`
+  );
   fs.mkdirSync(configPath, { recursive: true });
   fs.closeSync(fs.openSync(`${configPath}/${CONFIG_FILE_NAME}`, 'w'));
 }
@@ -88,34 +90,43 @@ export function getModuleConfigEntry(modulePath: string): ConfigEntry {
     fs.readFileSync(`${getModuleFullPath(modulePath)}/package.json`).toString()
   );
 
+  const yarnOrNpm = hasYarn(modulePath) ? 'yarn' : 'npm';
+  const defaultConfig: ConfigEntry = {
+    includes: ['src'],
+    command: `${yarnOrNpm} run build`,
+  };
+
   if (packageJson['watch-module']) {
     // a watch-module config is found in the package
-    const packageJsonConfig = packageJson['watch-module'];
-    if (typeof packageJsonConfig.includes === 'undefined') {
-      packageJsonConfig.includes = ['src'];
-    }
+    const packageJsonConfig: ConfigEntry = {
+      ...defaultConfig,
+      ...packageJson['watch-module'],
+    };
     moduleConfigCache[moduleName] = packageJsonConfig;
-    log(moduleName, chalk.hex(Theme.info)('using package.json config'));
+    log(moduleName, 'using package.json config', Theme.info);
+
     return packageJsonConfig;
   }
 
   const globalConfig = getGlobalConfig();
   if (globalConfig[moduleName]) {
     // a config for this module is found in the global config
-    moduleConfigCache[moduleName] = globalConfig[moduleName];
-    log(moduleName, chalk.hex(Theme.info)('using global config'));
-    return globalConfig[moduleName];
+
+    const globalConfigWithDefault: ConfigEntry = {
+      ...defaultConfig,
+      ...globalConfig[moduleName],
+    };
+
+    moduleConfigCache[moduleName] = globalConfigWithDefault;
+    log(moduleName, 'using global config', Theme.info);
+
+    return globalConfigWithDefault;
   }
 
   // no config was found, return default config
-  const yarnOrNpm = hasYarn(modulePath) ? 'yarn' : 'npm';
-  const defaultConfig = {
-    includes: ['src'],
-    command: `${yarnOrNpm} run build`,
-  };
-
   moduleConfigCache[moduleName] = defaultConfig;
-  log(moduleName, chalk.hex(Theme.info)('using default config'));
+  log(moduleName, 'using default config', Theme.info);
+
   return defaultConfig;
 }
 

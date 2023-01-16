@@ -2,10 +2,9 @@ import nodeProcess from 'process';
 import { ChildProcess, PromiseWithChild, exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs-extra';
-import chalk from 'chalk';
 import minimatch from 'minimatch';
 import Theme from './theme.js';
-import { debug, log } from './logging.js';
+import { debug, error, log, warn } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
 import { getModuleNameForPath } from './utils.js';
 
@@ -57,7 +56,10 @@ function backupModule(moduleName: string, modulePath: string): void {
     return;
   }
 
-  debug(`Create backup directory for "${moduleName}" and save files`);
+  debug(
+    moduleName,
+    `Create backup directory for "${moduleName}" and save files`
+  );
 
   // copy dir to backup version
   if (fs.existsSync(modulePath) && fs.statSync(modulePath).isDirectory()) {
@@ -89,7 +91,7 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
       )
     )
     .then(() => {
-      log(moduleName, chalk.hex(Theme.success)('module swapped'));
+      log(moduleName, 'module swapped', Theme.success);
     })
     .catch(console.error);
 }
@@ -103,10 +105,10 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   const moduleName = getModuleNameForPath(modulePath);
   log(moduleName, 'Change detected');
   console.log(pathsSet);
-  debug(`Build "${moduleName}" package`);
+  debug(moduleName, `Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
-    debug(`kill old process for ${moduleName}...`);
+    debug(moduleName, `kill old process for ${moduleName}...`);
     currentlyBuildingModules[moduleName].abort();
   }
 
@@ -114,15 +116,18 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   const commands = getModuleCommandsForPath(modulePath, pathsSet);
 
   if (!commands || commands.length === 0) {
-    debug(`No command, copy files`);
+    debug(moduleName, `No command, copy files`);
     copyFiles(moduleName, modulePath);
     return;
   }
 
   if (commands.length > 1) {
-    debug(`Command are "${commands.join(', ')}", run and copy files`);
+    debug(
+      moduleName,
+      `Command are "${commands.join(', ')}", run and copy files`
+    );
   } else {
-    debug(`Command is "${commands[0]}", run and copy files`);
+    debug(moduleName, `Command is "${commands[0]}", run and copy files`);
   }
 
   const controller = new AbortController();
@@ -164,12 +169,12 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
         someAreRejected = true;
 
         if (result.reason.killed) {
-          debug(`Old process for ${moduleName} killed.`);
+          debug(moduleName, `Old process for ${moduleName} killed.`);
         } else {
-          log(moduleName, chalk.hex(Theme.error)(result.reason.message));
+          log(moduleName, result.reason.message, Theme.error);
 
-          console.log(chalk.hex(Theme.warn)(result.reason.stdout));
-          console.log(chalk.hex(Theme.error)(result.reason.stderr));
+          log(moduleName, result.reason.stdout, Theme.warn);
+          log(moduleName, result.reason.stderr, Theme.error);
         }
         return;
       }

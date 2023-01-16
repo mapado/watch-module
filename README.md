@@ -29,7 +29,7 @@ npx watch-module /path/to/my/module ../my-other-module
 
 ### Configuration
 
-On first launch, watch-module creates an empty configuration file to `{HOME_FOLDER}/.config/watch-module/config.json`
+On first launch, watch-module creates an empty configuration file to `{HOME_FOLDER}/.config/watch-module/watch-module.json`
 In order to force a different configuration for a specific module, you can add "per module" entries to this file :
 
 ```jsonc
@@ -44,6 +44,7 @@ In order to force a different configuration for a specific module, you can add "
   // do not watch the files in the "dist" directory
   // do not call any command before copying the files
   "my-other-module": {
+    "command": null,
     "includes": [""], // use "" or "." to watch all files
     "excludes": ["dist"]
   }
@@ -60,7 +61,7 @@ You can override this global configuration by configuring the targeted module's 
   },
   "watch-module": {
     "command": "yarn run build:prod",
-    "includes": ["src"] // if "includes" is not defined, watch-module will use "src" for retro compatibility
+    "includes": ["src"]
   }
 }
 ```
@@ -69,10 +70,15 @@ If no configuration is found for a module, watch-module falls back to the defaul
 
 ```jsonc
 {
+  "command": "yarn|npm run build", // default configs tries to detect yarn or npm
   "includes": ["src"],
-  "command": "yarn|npm run build" // default configs tries to detect yarn or npm
+  "excludes": []
 }
 ```
+
+#### Partial configuration
+
+If you overrides only some parts of the configuration, then the keys that are not overiden will use the default configuration.
 
 ## Alternatives
 

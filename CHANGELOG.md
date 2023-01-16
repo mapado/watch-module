@@ -2,9 +2,33 @@
 
 ## Unreleased
 
-- Better log when a build is failing [#36](https://github.com/mapado/watch-module/pull/36)
+## 2.2.2
+
+- allow react 17 as ink uses an old reconcilier that thoes not support react 18 for now
+
+## 2.2.1
+
+- Try to fix build issue with peerDeps
+- better tab color
+
+## 2.2.0
+
+### Configuration
+
+- [Minor BC] If configuration is overriden, keep the default config values for un-setted keys [#37](https://github.com/mapado/watch-module/pull/37). If you did rely on the fact that `command` is unsetted, then you need to explicitly set it now : `"command": null`
+- Possibility to add a package on the fly [#42](https://github.com/mapado/watch-module/pull/42)
+
+### Performance
+
 - Do not build if file content did not change on save (prevent the "mad savers" 😉) [#38](https://github.com/mapado/watch-module/pull/38)
 - Kill previous build if another change happen before the end [#39](https://github.com/mapado/watch-module/pull/39)
+
+### Rendering
+
+Globally better rendering:
+
+- Render with [ink](https://github.com/vadimdemedes/ink) and split renderer by tab [#41](https://github.com/mapado/watch-module/pull/41)
+- Better log when a build is failing (log stdin & stdout) [#36](https://github.com/mapado/watch-module/pull/36)
 
 ## 2.1.1
 

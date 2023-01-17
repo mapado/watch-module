@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
-import nodeProcess from 'process';
-import crypto from 'crypto';
+import nodeProcess from 'node:process';
+import crypto from 'node:crypto';
 
 export const cwd = nodeProcess.cwd();
 

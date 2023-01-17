@@ -1,5 +1,5 @@
 import React from 'react';
-import process from 'process';
+import process from 'node:process';
 import debounce from 'debounce';
 import chokidar from 'chokidar';
 import { render } from 'ink';
@@ -13,7 +13,7 @@ import {
 } from './config-utils.js';
 import { getFileHash, getModuleNameForPath } from './utils.js';
 import Renderer from './Renderer.js';
-import EventEmitter from 'events';
+import EventEmitter from 'node:events';
 import { VERSION } from './version.js';
 
 const fileHashCache: Record<string, string> = {};

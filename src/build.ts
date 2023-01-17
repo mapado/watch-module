@@ -1,6 +1,6 @@
-import nodeProcess from 'process';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import nodeProcess from 'node:process';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import fs from 'fs-extra';
 import minimatch from 'minimatch';
 import Theme from './theme.js';

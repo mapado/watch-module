@@ -1,8 +1,9 @@
 import Theme from './theme.js';
 import argv from './argv.js';
 import EventEmitter from 'events';
+import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
 
-type ModuleName = 'watch-module' | string;
+type ModuleName = typeof WATCH_MODULE_DISPLAY_NAME | string;
 
 export enum LOG_LEVEL {
   INFO = 'INFO',

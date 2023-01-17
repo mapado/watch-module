@@ -18,10 +18,11 @@ function buildTimeout() {
       }
       if (stdout) {
         console.log(stdout);
+        console.log('build success');
       }
 
       if (stderr) {
-        console.errr(stderr);
+        console.error(stderr);
       }
     });
   }, 50);

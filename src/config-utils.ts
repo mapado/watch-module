@@ -4,6 +4,8 @@ import { log } from './logging.js';
 import Theme from './theme.js';
 import { getModuleNameForPath, getModuleFullPath } from './utils.js';
 
+export const WATCH_MODULE_DISPLAY_NAME = 'watch-module';
+
 const CONFIG_FILE_NAME = 'watch-module.json';
 const CONFIG_PATH = '.config/watch-module';
 
@@ -40,7 +42,7 @@ function createDefaultConfig(): void {
     return;
   }
   log(
-    'watch-module',
+    WATCH_MODULE_DISPLAY_NAME,
     `creating config file: ${configPath}/${CONFIG_FILE_NAME}`
   );
   fs.mkdirSync(configPath, { recursive: true });

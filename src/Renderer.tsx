@@ -4,6 +4,7 @@ import TextInputCJS from 'ink-text-input';
 import { LogLine, LOG_LEVEL } from './logging.js';
 import Theme from './theme.js';
 import { Tab, Tabs } from 'ink-tab';
+import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
 
 // @ts-expect-error -- issue with ink-text-input and CommonJS definition
 const TextInput = TextInputCJS.default as typeof TextInputCJS;
@@ -71,7 +72,9 @@ export default function Renderer({
   const { exit } = useApp();
   const [inputVisible, setInputVisible] = useState(false);
   const [query, setQuery] = useState('');
-  const [activeTabName, setActiveTabName] = useState<string>('watch-module');
+  const [activeTabName, setActiveTabName] = useState<string>(
+    WATCH_MODULE_DISPLAY_NAME
+  );
 
   useInput((input, key) => {
     if (input === 'a') {
@@ -107,14 +110,14 @@ export default function Renderer({
   };
 
   const filterActiveModule = (line: LogLine) => {
-    if (activeTabName === null || activeTabName === 'watch-module') {
+    if (activeTabName === null || activeTabName === WATCH_MODULE_DISPLAY_NAME) {
       return true;
     }
 
     return line.moduleName === activeTabName;
   };
 
-  const moduleNames = ['watch-module', ...moduleNameSet];
+  const moduleNames = [WATCH_MODULE_DISPLAY_NAME, ...moduleNameSet];
   const moduleNameMaxLength = Math.max(
     ...moduleNames.map((moduleName) => moduleName.length)
   );
@@ -126,9 +129,9 @@ export default function Renderer({
           <LogLine
             key={index}
             line={line}
-            displayModuleName={activeTabName === 'watch-module'}
+            displayModuleName={activeTabName === WATCH_MODULE_DISPLAY_NAME}
             padEnd={
-              activeTabName === 'watch-module'
+              activeTabName === WATCH_MODULE_DISPLAY_NAME
                 ? moduleNameMaxLength
                 : getMaxLogLevelLength()
             }

@@ -6,10 +6,15 @@ import { render } from 'ink';
 import { createLogger, debug, error, log } from './logging.js';
 import { buildModule, restoreOldDirectories } from './build.js';
 import argv from './argv.js';
-import { getIncludesPaths, getExcludesPaths } from './config-utils.js';
+import {
+  getIncludesPaths,
+  getExcludesPaths,
+  WATCH_MODULE_DISPLAY_NAME,
+} from './config-utils.js';
 import { getFileHash, getModuleNameForPath } from './utils.js';
 import Renderer from './Renderer.js';
 import EventEmitter from 'events';
+import { VERSION } from './version.js';
 
 const fileHashCache: Record<string, string> = {};
 
@@ -19,7 +24,7 @@ function main(): void {
   const emitter = new MyEmitter();
   const logger = createLogger(emitter);
 
-  debug('watch-module', JSON.stringify(argv));
+  debug(WATCH_MODULE_DISPLAY_NAME, JSON.stringify(argv));
 
   /* ================== debounce & events ================== */
 
@@ -59,7 +64,7 @@ function main(): void {
   const excludesPaths = getExcludesPaths(modulePaths);
 
   if (!includesPaths.length) {
-    log('watch-module', 'nothing to watch, exiting...');
+    log(WATCH_MODULE_DISPLAY_NAME, 'nothing to watch, exiting...');
   }
 
   const moduleNameSet = new Set<string>();
@@ -151,7 +156,7 @@ function main(): void {
       modulePaths.pop();
 
       error(
-        'watch-module',
+        WATCH_MODULE_DISPLAY_NAME,
         `Unable to watch new path "${modulePath}": either the path does not exist, or it does not contain a valid module`
       );
     }
@@ -179,6 +184,11 @@ function main(): void {
       />
     );
   });
+}
+
+if (argv.version || argv.V) {
+  console.log(`watch-module ${VERSION}`);
+  process.exit(0);
 }
 
 main();

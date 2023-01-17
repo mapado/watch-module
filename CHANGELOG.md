@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 3.0.1
+
+- Add `--version` or `-V` helper
+
 ## 3.0.0
 
 - [BREAKING CHANGE] Drop support for node < 16

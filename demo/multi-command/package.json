@@ -1,0 +1,18 @@
+{
+  "name": "watch-module-demo-package",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "yarn build:css && yarn build:js",
+    "build:css": "cp src/index.css build/index.css",
+    "build:js": "cp src/index.js build/index.js"
+  },
+  "watch-module": {
+    "command": {
+      "*.css": "sleep 5 && yarn build:css",
+      "*.js": "sleep 5 && yarn build:js"
+    }
+  }
+}

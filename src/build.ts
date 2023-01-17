@@ -1,20 +1,46 @@
 import nodeProcess from 'process';
-import { ChildProcess, exec } from 'child_process';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import fs from 'fs-extra';
+import minimatch from 'minimatch';
 import Theme from './theme.js';
-import { debug, error, log, warn } from './logging.js';
+import { debug, log } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
 import { getModuleNameForPath } from './utils.js';
+
+const execAsync = promisify(exec);
 
 export const cwd = nodeProcess.cwd();
 
 /**
  * get the command to call for the package
  */
-function getModuleCommandForPath(path: string): string | null | undefined {
+function getModuleCommandsForPath(
+  path: string,
+  pathSet: Set<string>
+): string[] | void {
   const moduleConfig = getModuleConfigEntry(path);
 
-  return moduleConfig.command;
+  if (!moduleConfig.command) {
+    return;
+  }
+
+  if (typeof moduleConfig.command === 'string') {
+    return [moduleConfig.command];
+  }
+
+  const matchedCommands = Object.entries(moduleConfig.command)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .filter(([pattern, _command]) => {
+      return (
+        minimatch.match(Array.from(pathSet), pattern, { matchBase: true })
+          .length > 0
+      );
+    })
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    .map(([_pattern, command]) => command);
+
+  return matchedCommands;
 }
 
 const getNodeModulepath = (moduleName: string): string =>
@@ -68,56 +94,76 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
     .catch(console.error);
 }
 
-const currentlyBuildingModules: Record<string, ChildProcess> = {};
+const currentlyBuildingModules: Record<string, AbortController> = {};
 
 /**
  * Trigger a build of the package
  */
-export function buildPath(path: string): void {
-  const moduleName = getModuleNameForPath(path);
+export function buildModule(modulePath: string, pathsSet: Set<string>): void {
+  const moduleName = getModuleNameForPath(modulePath);
   log(moduleName, 'Change detected');
   debug(moduleName, `Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
     debug(moduleName, `kill old process for ${moduleName}...`);
-    currentlyBuildingModules[moduleName].kill();
+    currentlyBuildingModules[moduleName].abort();
   }
 
-  const command = getModuleCommandForPath(path);
+  const commands = getModuleCommandsForPath(modulePath, pathsSet);
 
-  if (!command) {
-    debug(moduleName, 'No command, copy files');
-    copyFiles(moduleName, path);
+  if (!commands || commands.length === 0) {
+    debug(moduleName, `No command, copy files`);
+    copyFiles(moduleName, modulePath);
     return;
   }
 
-  debug(moduleName, `Command is "${command}", run and copy files`);
+  if (commands.length > 1) {
+    debug(
+      moduleName,
+      `Command are "${commands.join(', ')}", run and copy files`
+    );
+  } else {
+    debug(moduleName, `Command is "${commands[0]}", run and copy files`);
+  }
 
-  currentlyBuildingModules[moduleName] = exec(
-    command,
-    {
+  const controller = new AbortController();
+
+  const childProcesses = commands.map((command) =>
+    execAsync(command, {
       maxBuffer: 1024 * 500,
-      cwd: path,
-    },
-    (err, stdout, stderr) => {
-      if (err) {
-        if (err.killed) {
+      cwd: modulePath,
+      signal: controller.signal,
+    })
+  );
+
+  Promise.allSettled(childProcesses).then((results) => {
+    let someAreRejected = false;
+
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        someAreRejected = true;
+
+        if (result.reason.killed) {
           debug(moduleName, `Old process for ${moduleName} killed.`);
         } else {
-          log(moduleName, err.message, Theme.error);
+          log(moduleName, result.reason.message, Theme.error);
 
-          warn(moduleName, stdout);
-          error(moduleName, stderr);
+          log(moduleName, result.reason.stdout, Theme.warn);
+          log(moduleName, result.reason.stderr, Theme.error);
         }
         return;
       }
-
-      // remove cache of previous build
-      delete currentlyBuildingModules[moduleName];
-
-      copyFiles(moduleName, path);
     }
-  );
+
+    // remove cache of previous build
+    delete currentlyBuildingModules[moduleName];
+
+    if (!someAreRejected) {
+      copyFiles(moduleName, modulePath);
+    }
+  });
+
+  currentlyBuildingModules[moduleName] = controller;
 }
 
 export function restoreOldDirectories(pathList: string[]): Promise<void>[] {

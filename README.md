@@ -76,6 +76,32 @@ If no configuration is found for a module, watch-module falls back to the defaul
 }
 ```
 
+#### API
+
+#### command (default `yarn|npm run build`)
+
+The command that will be triggered when a change is detected.
+
+It can either be:
+
+- a `string` of a command to run
+- an object of `{ [pattern: string]: string }` to trigger specific command according to the file changes (ex: `{ "*.js": "npm run build:js", "*.css": "npm run build:css" }`) [experimental]
+- `null` if you just want to copy the files and do nothing else
+
+Using an object of `pattern: command` is still experimental and needs some real-world usage.
+
+#### includes
+
+An array of string of files or directory to watch.
+
+Default is `['src/']`
+
+#### excludes
+
+An array of string of files or directory to exclude from included paths.
+
+Default is `[]`
+
 #### Partial configuration
 
 If you overrides only some parts of the configuration, then the keys that are not overiden will use the default configuration.

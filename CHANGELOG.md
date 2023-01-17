@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- [BREAKING CHANGE] Drop support for node < 16
+- [EXPERIMENTAL] allow package to be multi-command [#45](https://github.com/mapado/watch-module/pull/45)
+
 ## 2.2.2
 
 - allow react 17 as ink uses an old reconcilier that thoes not support react 18 for now

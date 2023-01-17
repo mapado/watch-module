@@ -7,7 +7,7 @@
     "watch-module": "bin/watch-module.js"
   },
   "engines": {
-    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+    "node": ">=16.0.0"
   },
   "scripts": {
     "lint": "yarn lint:types && yarn lint:eslint",
@@ -27,6 +27,7 @@
     "ink": "^3.2.0",
     "ink-tab": "^4.3.1",
     "ink-text-input": "^4.0.3",
+    "minimatch": "^6.0.4",
     "minimist": "^1.2.6",
     "react": "^17.0.2 || ^18.2.0"
   },

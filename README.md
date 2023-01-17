@@ -85,8 +85,10 @@ The command that will be triggered when a change is detected.
 It can either be:
 
 - a `string` of a command to run
-- an object of `{ [pattern: string]: string }` to trigger specific command according to the file changes (ex: `{ "*.js": "npm run build:js", "*.css": "npm run build:css" }`)
+- an object of `{ [pattern: string]: string }` to trigger specific command according to the file changes (ex: `{ "*.js": "npm run build:js", "*.css": "npm run build:css" }`) [experimental]
 - `null` if you just want to copy the files and do nothing else
+
+Using an object of `pattern: command` is still experimental and needs some real-world usage.
 
 #### includes
 

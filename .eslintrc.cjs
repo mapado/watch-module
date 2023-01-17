@@ -2,7 +2,7 @@ module.exports = {
   root: true,
   env: { node: true },
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'unicorn'],
+  plugins: ['@typescript-eslint', 'unicorn', 'import'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
@@ -10,6 +10,10 @@ module.exports = {
   ],
   rules: {
     'unicorn/prefer-node-protocol': 'error',
+
+    // Sort imports
+    'sort-imports': 'off',
+    'import/order': ['error', { alphabetize: { order: 'asc' } }],
   },
   overrides: [
     {

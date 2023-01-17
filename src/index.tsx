@@ -1,19 +1,19 @@
-import React from 'react';
+import EventEmitter from 'node:events';
 import process from 'node:process';
-import debounce from 'debounce';
 import chokidar from 'chokidar';
+import debounce from 'debounce';
 import { render } from 'ink';
-import { createLogger, debug, error, log } from './logging.js';
-import { buildModule, restoreOldDirectories } from './build.js';
+import React from 'react';
+import Renderer from './Renderer.js';
 import argv from './argv.js';
+import { buildModule, restoreOldDirectories } from './build.js';
 import {
   getIncludesPaths,
   getExcludesPaths,
   WATCH_MODULE_DISPLAY_NAME,
 } from './config-utils.js';
+import { createLogger, debug, error, log } from './logging.js';
 import { getFileHash, getModuleNameForPath } from './utils.js';
-import Renderer from './Renderer.js';
-import EventEmitter from 'node:events';
 import { VERSION } from './version.js';
 
 const fileHashCache: Record<string, string> = {};

@@ -13,6 +13,7 @@
     "lint": "yarn lint:types && yarn lint:eslint",
     "lint:types": "tsc --noEmit",
     "lint:eslint": "eslint .",
+    "dev": "node dev.cjs",
     "build": "tsc --build tsconfig.json",
     "prepublishOnly": "tsc --build tsconfig.json"
   },

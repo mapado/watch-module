@@ -1,10 +1,10 @@
 import nodeProcess from 'process';
-import { ChildProcess, PromiseWithChild, exec } from 'child_process';
+import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs-extra';
 import minimatch from 'minimatch';
 import Theme from './theme.js';
-import { debug, error, log, warn } from './logging.js';
+import { debug, log } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
 import { getModuleNameForPath } from './utils.js';
 
@@ -28,8 +28,6 @@ function getModuleCommandsForPath(
   if (typeof moduleConfig.command === 'string') {
     return [moduleConfig.command];
   }
-
-  console.log(Object.keys(moduleConfig.command), Array.from(pathSet));
 
   const matchedCommands = Object.entries(moduleConfig.command)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,7 +102,6 @@ const currentlyBuildingModules: Record<string, AbortController> = {};
 export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   const moduleName = getModuleNameForPath(modulePath);
   log(moduleName, 'Change detected');
-  console.log(pathsSet);
   debug(moduleName, `Build "${moduleName}" package`);
 
   if (currentlyBuildingModules[moduleName]) {
@@ -112,7 +109,6 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
     currentlyBuildingModules[moduleName].abort();
   }
 
-  console.log(modulePath);
   const commands = getModuleCommandsForPath(modulePath, pathsSet);
 
   if (!commands || commands.length === 0) {
@@ -133,32 +129,11 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   const controller = new AbortController();
 
   const childProcesses = commands.map((command) =>
-    execAsync(
-      command,
-      {
-        maxBuffer: 1024 * 500,
-        cwd: modulePath,
-        signal: controller.signal,
-      }
-      // (err, stdout, stderr) => {
-      //   if (err) {
-      //     if (err.killed) {
-      //       debug(`Old process for ${moduleName} killed.`);
-      //     } else {
-      //       log(moduleName, chalk.hex(Theme.error)(err.message));
-
-      //       console.log(chalk.hex(Theme.warn)(stdout));
-      //       console.log(chalk.hex(Theme.error)(stderr));
-      //     }
-      //     return;
-      //   }
-
-      //   // remove cache of previous build
-      //   delete currentlyBuildingModules[moduleName];
-
-      //   copyFiles(moduleName, modulePath);
-      // }
-    )
+    execAsync(command, {
+      maxBuffer: 1024 * 500,
+      cwd: modulePath,
+      signal: controller.signal,
+    })
   );
 
   Promise.allSettled(childProcesses).then((results) => {

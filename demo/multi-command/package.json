@@ -11,8 +11,8 @@
   },
   "watch-module": {
     "command": {
-      "*.css": "yarn build:css",
-      "*.js": "yarn build:js"
+      "*.css": "sleep 5 && yarn build:css",
+      "*.js": "sleep 5 && yarn build:js"
     }
   }
 }

@@ -97,3 +97,14 @@ npx watch-module@latest
 ```
 
 It should resolve the issue.
+
+## Contributing
+
+You can start a builder in watch mode with `yarn dev`. It will automatically build on each change of file in the `src/` directory.
+
+In another terminal, you can go in the `demo/app` folder and use the build this way:
+
+```sh
+cd demo/app
+node ../../build/watch-module.js ../package ../package2 -v
+```

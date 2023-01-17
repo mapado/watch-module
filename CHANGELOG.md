@@ -3,7 +3,7 @@
 ## Unreleased
 
 - [BREAKING CHANGE] Drop support for node < 16
-- allow package to be multi-command // TODO readme
+- allow package to be multi-command [#45](https://github.com/mapado/watch-module/pull/45)
 
 ## 2.2.2
 

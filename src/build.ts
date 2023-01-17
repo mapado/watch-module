@@ -1,11 +1,11 @@
-import nodeProcess from 'process';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { exec } from 'node:child_process';
+import nodeProcess from 'node:process';
+import { promisify } from 'node:util';
 import fs from 'fs-extra';
 import minimatch from 'minimatch';
-import Theme from './theme.js';
-import { debug, log } from './logging.js';
 import { getModuleConfigEntry } from './config-utils.js';
+import { debug, log } from './logging.js';
+import Theme from './theme.js';
 import { getModuleNameForPath } from './utils.js';
 
 const execAsync = promisify(exec);

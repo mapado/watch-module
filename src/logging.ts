@@ -1,7 +1,7 @@
-import Theme from './theme.js';
+import EventEmitter from 'node:events';
 import argv from './argv.js';
-import EventEmitter from 'events';
 import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
+import Theme from './theme.js';
 
 type ModuleName = typeof WATCH_MODULE_DISPLAY_NAME | string;
 

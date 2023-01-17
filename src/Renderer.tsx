@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
 import { Box, Text, useApp, useInput } from 'ink';
+import { Tab, Tabs } from 'ink-tab';
 import TextInputCJS from 'ink-text-input';
+import React, { useState } from 'react';
+import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
 import { LogLine, LOG_LEVEL } from './logging.js';
 import Theme from './theme.js';
-import { Tab, Tabs } from 'ink-tab';
-import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
 
 // @ts-expect-error -- issue with ink-text-input and CommonJS definition
 const TextInput = TextInputCJS.default as typeof TextInputCJS;

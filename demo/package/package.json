@@ -8,6 +8,6 @@
     "build:prod": "cp src/index.js build/index.js"
   },
   "watch-module": {
-    "command": "cp src/index.js build/index.js"
+    "command": "sleep 2 && cp src/index.js build/index.js"
   }
 }

@@ -94,7 +94,17 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
     .catch(console.error);
 }
 
-const currentlyBuildingModules: Record<string, AbortController> = {};
+// TODO move into a proper file and use it in the other files instead of "string"
+type ModuleName = string;
+type Command = string;
+
+const currentlyBuildingModules: Record<
+  ModuleName,
+  Record<
+    Command,
+    { abortController: AbortController; process: ReturnType<typeof execAsync> }
+  >
+> = {};
 
 /**
  * Trigger a build of the package
@@ -104,17 +114,23 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   log(moduleName, 'Change detected');
   debug(moduleName, `Build "${moduleName}" package`);
 
-  if (currentlyBuildingModules[moduleName]) {
-    debug(moduleName, `kill old process for ${moduleName}...`);
-    currentlyBuildingModules[moduleName].abort();
-  }
-
   const commands = getModuleCommandsForPath(modulePath, pathsSet);
 
   if (!commands || commands.length === 0) {
     debug(moduleName, `No command, copy files`);
     copyFiles(moduleName, modulePath);
     return;
+  }
+
+  if (currentlyBuildingModules[moduleName]) {
+    debug(moduleName, `kill old process for ${moduleName}...`);
+
+    commands.forEach((command) => {
+      if (currentlyBuildingModules[moduleName][command]) {
+        currentlyBuildingModules[moduleName][command].abortController.abort();
+        delete currentlyBuildingModules[moduleName][command];
+      }
+    });
   }
 
   if (commands.length > 1) {
@@ -126,17 +142,32 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
     debug(moduleName, `Command is "${commands[0]}", run and copy files`);
   }
 
-  const controller = new AbortController();
+  commands.forEach((command) => {
+    const controller = new AbortController();
 
-  const childProcesses = commands.map((command) =>
-    execAsync(command, {
+    if (!currentlyBuildingModules[moduleName]) {
+      currentlyBuildingModules[moduleName] = {};
+    }
+
+    const process = execAsync(command, {
       maxBuffer: 1024 * 500,
       cwd: modulePath,
       signal: controller.signal,
-    })
+    });
+
+    currentlyBuildingModules[moduleName][command] = {
+      abortController: controller,
+      process,
+    };
+
+    return process;
+  });
+
+  const promiseList = Object.values(currentlyBuildingModules[moduleName]).map(
+    ({ process }) => process
   );
 
-  Promise.allSettled(childProcesses).then((results) => {
+  Promise.allSettled(promiseList).then((results) => {
     let someAreRejected = false;
 
     for (const result of results) {
@@ -162,8 +193,6 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
       copyFiles(moduleName, modulePath);
     }
   });
-
-  currentlyBuildingModules[moduleName] = controller;
 }
 
 export function restoreOldDirectories(pathList: string[]): Promise<void>[] {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 3.0.2
+
+- handle abort in multi-command [#50](https://github.com/mapado/watch-module/pull/50)
+
 ## 3.0.1
 
 - Add `--version` or `-V` helper

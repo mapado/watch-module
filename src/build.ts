@@ -4,7 +4,7 @@ import { promisify } from 'node:util';
 import fs from 'fs-extra';
 import minimatch from 'minimatch';
 import { getModuleConfigEntry } from './config-utils.js';
-import { debug, log } from './logging.js';
+import { debug, log, replaceLastLogOrAdd } from './logging.js';
 import Theme from './theme.js';
 import { getModuleNameForPath } from './utils.js';
 
@@ -65,7 +65,11 @@ function backupModule(moduleName: string, modulePath: string): void {
   }
 }
 
-function copyFiles(moduleName: string, path: string): Promise<void> {
+function copyFiles(
+  moduleName: string,
+  path: string,
+  replaceLogLine: number
+): Promise<void> {
   const modulePath = getNodeModulepath(moduleName);
   backupModule(moduleName, modulePath);
 
@@ -89,7 +93,12 @@ function copyFiles(moduleName: string, path: string): Promise<void> {
       )
     )
     .then(() => {
-      log(moduleName, 'module swapped', Theme.success);
+      replaceLastLogOrAdd(
+        moduleName,
+        'module swapped',
+        replaceLogLine,
+        Theme.success
+      );
     })
     .catch(console.error);
 }
@@ -111,14 +120,14 @@ const currentlyBuildingModules: Record<
  */
 export function buildModule(modulePath: string, pathsSet: Set<string>): void {
   const moduleName = getModuleNameForPath(modulePath);
-  log(moduleName, 'Change detected');
+  const changeLogLine = log(moduleName, 'Change detected, building…');
   debug(moduleName, `Build "${moduleName}" package`);
 
   const commands = getModuleCommandsForPath(modulePath, pathsSet);
 
   if (!commands || commands.length === 0) {
     debug(moduleName, `No command, copy files`);
-    copyFiles(moduleName, modulePath);
+    copyFiles(moduleName, modulePath, changeLogLine);
     return;
   }
 
@@ -142,7 +151,7 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
     debug(moduleName, `Command is "${commands[0]}", run and copy files`);
   }
 
-  commands.forEach((command) => {
+  commands.forEach((command: string): void => {
     const controller = new AbortController();
 
     if (!currentlyBuildingModules[moduleName]) {
@@ -159,8 +168,6 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
       abortController: controller,
       process,
     };
-
-    return process;
   });
 
   const promiseList = Object.values(currentlyBuildingModules[moduleName]).map(
@@ -177,7 +184,12 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
         if (result.reason.killed) {
           debug(moduleName, `Old process for ${moduleName} killed.`);
         } else {
-          log(moduleName, result.reason.message, Theme.error);
+          replaceLastLogOrAdd(
+            moduleName,
+            result.reason.message,
+            changeLogLine,
+            Theme.error
+          );
 
           log(moduleName, result.reason.stdout, Theme.warn);
           log(moduleName, result.reason.stderr, Theme.error);
@@ -190,7 +202,7 @@ export function buildModule(modulePath: string, pathsSet: Set<string>): void {
     delete currentlyBuildingModules[moduleName];
 
     if (!someAreRejected) {
-      copyFiles(moduleName, modulePath);
+      copyFiles(moduleName, modulePath, changeLogLine);
     }
   });
 }

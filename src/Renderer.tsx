@@ -1,13 +1,17 @@
 import { Box, Text, useApp, useInput } from 'ink';
+import SpinnerCJS from 'ink-spinner';
 import { Tab, Tabs } from 'ink-tab';
 import TextInputCJS from 'ink-text-input';
-import React, { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import { WATCH_MODULE_DISPLAY_NAME } from './config-utils.js';
-import { LogLine, LOG_LEVEL } from './logging.js';
+import { hasNextLineForModule, LogLine, LOG_LEVEL } from './logging.js';
 import Theme from './theme.js';
 
 // @ts-expect-error -- issue with ink-text-input and CommonJS definition
 const TextInput = TextInputCJS.default as typeof TextInputCJS;
+
+// @ts-expect-error -- issue with ink-text-input and CommonJS definition
+const Spinner = SpinnerCJS.default as typeof SpinnerCJS;
 
 type Props = {
   moduleNameSet: Set<string>;
@@ -43,9 +47,43 @@ const getMaxLogLevelLength = () => {
   return maxLogLevelLength;
 };
 
-type LineProps = { line: LogLine; displayModuleName: boolean; padEnd: number };
+function DotsToSpinner({ children }: { children: string }): JSX.Element {
+  if (!children.includes('…')) {
+    return <>{children}</>;
+  }
 
-function LogLine({ line, displayModuleName, padEnd }: LineProps): JSX.Element {
+  const explodedChildren = children.split('…');
+
+  return (
+    <>
+      {explodedChildren.map((child, index) => {
+        if (index < explodedChildren.length - 1) {
+          return (
+            <Fragment key={index}>
+              {child} <Spinner type="dots" />
+            </Fragment>
+          );
+        }
+
+        return <Fragment key={index}>{child}</Fragment>;
+      })}
+    </>
+  );
+}
+
+type LineProps = {
+  line: LogLine;
+  displayModuleName: boolean;
+  padEnd: number;
+  isLast: boolean;
+};
+
+function LogLine({
+  line,
+  displayModuleName,
+  padEnd,
+  isLast,
+}: LineProps): JSX.Element {
   return (
     <Box>
       <Box marginRight={1}>
@@ -58,7 +96,11 @@ function LogLine({ line, displayModuleName, padEnd }: LineProps): JSX.Element {
             : line.level.padEnd(padEnd)}
         </Text>
       </Box>
-      <Text color={line.color}>{line.text}</Text>
+      <Box>
+        <Text color={line.color}>
+          {isLast ? <DotsToSpinner>{line.text}</DotsToSpinner> : line.text}
+        </Text>
+      </Box>
     </Box>
   );
 }
@@ -128,6 +170,7 @@ export default function Renderer({
         return (
           <LogLine
             key={index}
+            isLast={!hasNextLineForModule(logLines, index, line.moduleName)}
             line={line}
             displayModuleName={activeTabName === WATCH_MODULE_DISPLAY_NAME}
             padEnd={
@@ -139,22 +182,24 @@ export default function Renderer({
         );
       })}
 
-      <Tabs
-        onChange={handleTabChange}
-        colors={{
-          activeTab: {
-            color: Theme.moduleName,
-          },
-        }}
-      >
-        {moduleNames.map((moduleName) => (
-          <Tab key={moduleName} name={moduleName}>
-            {moduleName}
-          </Tab>
-        ))}
-      </Tabs>
+      <Box borderStyle="round" borderColor="gray" flexDirection="column">
+        <Tabs
+          onChange={handleTabChange}
+          colors={{
+            activeTab: {
+              color: Theme.moduleName,
+            },
+          }}
+        >
+          {moduleNames.map((moduleName) => (
+            <Tab key={moduleName} name={moduleName}>
+              {moduleName}
+            </Tab>
+          ))}
+        </Tabs>
+      </Box>
 
-      <Box>
+      <Box marginTop={0}>
         {inputVisible ? (
           <>
             <Text>Enter path: </Text>

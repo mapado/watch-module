@@ -26,6 +26,7 @@
     "fs-extra": "^11.1.0",
     "has-yarn": "^3.0.0",
     "ink": "^3.2.0",
+    "ink-spinner": "^4.0.3",
     "ink-tab": "^4.3.1",
     "ink-text-input": "^4.0.3",
     "minimatch": "^6.0.4",

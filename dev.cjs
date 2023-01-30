@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { exec } = require('child_process');
+const { exec } = require('node:child_process');
 const chokidar = require('chokidar');
 
 let timeout = null;

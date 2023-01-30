@@ -20,6 +20,14 @@ export interface LogLine {
   color?: Theme;
 }
 
+export function hasNextLineForModule(
+  lines: LogLine[],
+  index: number,
+  moduleName: ModuleName
+): boolean {
+  return lines.slice(index + 1).some((l) => l.moduleName === moduleName);
+}
+
 export class LogLines {
   private lines: LogLine[] = [];
 
@@ -29,8 +37,25 @@ export class LogLines {
     this.#eventEmitter = eventEmitter;
   }
 
-  public addLine(line: Omit<LogLine, 'date'>): void {
-    this.lines.push({ ...line, date: new Date() });
+  /**
+   * Add a new line to the log
+   *
+   * @return the index of the inserted line
+   */
+  public addLine(line: Omit<LogLine, 'date'>): number {
+    const newLength = this.lines.push({ ...line, date: new Date() });
+    this.#eventEmitter.emit('newLogLine', line);
+
+    return newLength - 1;
+  }
+
+  public replaceLastLogOrAdd(index: number, line: Omit<LogLine, 'date'>): void {
+    if (hasNextLineForModule(this.lines, index, line.moduleName)) {
+      this.addLine(line);
+      return;
+    }
+
+    this.lines[index] = { ...line, date: new Date() };
     this.#eventEmitter.emit('newLogLine', line);
   }
 
@@ -47,32 +72,60 @@ export function createLogger(eventEmitter: EventEmitter): LogLines {
   return logLines;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const debug = (moduleName: ModuleName, text: string): void => {
+function assertLoggerIsSet(
+  innerLogLines: typeof logLines
+): asserts innerLogLines is LogLines {
+  if (!innerLogLines) {
+    throw new Error('Logger is not set. This should not happen.');
+  }
+}
+
+export function debug(moduleName: ModuleName, text: string): void {
+  assertLoggerIsSet(logLines);
+
   if (argv.v || argv.verbose) {
-    logLines?.addLine({
+    logLines.addLine({
       level: LOG_LEVEL.DEBUG,
       text,
       moduleName,
     });
   }
-};
+}
 
-export const log = (
+export function log(
   moduleName: string,
   message: ModuleName,
   color?: Theme
-): void => {
-  logLines?.addLine({
+): number {
+  assertLoggerIsSet(logLines);
+  return logLines.addLine({
     color,
     level: LOG_LEVEL.INFO,
     text: message,
     moduleName,
   });
-};
+}
 
-export function error(moduleName: ModuleName, message: ModuleName): void {
-  logLines?.addLine({
+export function replaceLastLogOrAdd(
+  moduleName: string,
+  message: ModuleName,
+  logLineNumber: number,
+  color?: Theme
+): void {
+  assertLoggerIsSet(logLines);
+
+  logLines.replaceLastLogOrAdd(logLineNumber, {
+    color,
+    level: LOG_LEVEL.INFO,
+    text: message,
+    moduleName,
+  });
+}
+
+export function error(moduleName: ModuleName, message: ModuleName): number {
+  assertLoggerIsSet(logLines);
+
+  return logLines.addLine({
     level: LOG_LEVEL.ERROR,
     moduleName,
     text: message,
@@ -80,8 +133,10 @@ export function error(moduleName: ModuleName, message: ModuleName): void {
   });
 }
 
-export function warn(moduleName: ModuleName, message: ModuleName): void {
-  logLines?.addLine({
+export function warn(moduleName: ModuleName, message: ModuleName): number {
+  assertLoggerIsSet(logLines);
+
+  return logLines.addLine({
     level: LOG_LEVEL.WARN,
     moduleName,
     text: message,

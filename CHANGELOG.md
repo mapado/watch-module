@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 3.1.0
+
+- Better rendering of "what is currently happening" [#51](https://github.com/mapado/watch-module/pull/51)
+
 ## 3.0.2
 
 - handle abort in multi-command [#50](https://github.com/mapado/watch-module/pull/50)

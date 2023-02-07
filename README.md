@@ -19,6 +19,8 @@ npx watch-module /path/to/my/module
 watch-module will detect code changes in your module, run the `build` script (if available) and copy the code into your `node_modules` folder.
 watch-module will not copy the node_modules folder contained inside your module
 
+> watch-module requires a node version >= 16 to work
+
 ### Multiple packages
 
 watch-modules does support multiple modules:

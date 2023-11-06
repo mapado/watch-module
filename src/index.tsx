@@ -64,7 +64,7 @@ function main(): void {
   const excludesPaths = getExcludesPaths(modulePaths);
 
   if (!includesPaths.length) {
-    log(WATCH_MODULE_DISPLAY_NAME, 'nothing to watch, exiting...');
+    log(WATCH_MODULE_DISPLAY_NAME, 'nothing to watch, is your "includes" files configured properly ? (See https://github.com/mapado/watch-module#includes )');
   }
 
   const moduleNameSet = new Set<string>();

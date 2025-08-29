@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- [BREAKING] Remove support for node < 16
+- [Internal] Upgrade to yarn 4
+
 ## 3.1.0
 
 - Better rendering of "what is currently happening" [#51](https://github.com/mapado/watch-module/pull/51)

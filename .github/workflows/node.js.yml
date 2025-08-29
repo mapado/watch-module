@@ -26,5 +26,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: yarn install --frozen-lockfile
+    - run: corepack enable
+    - run: yarn install --immutable
     - run: yarn lint

@@ -104,6 +104,14 @@ An array of string of files or directory to exclude from included paths.
 
 Default is `[]`
 
+#### outDir
+
+If you want to copy only your out directory, you can specify it there.
+
+Watch out: it is a pretty unused use-case.
+
+Default is `undefined`
+
 #### Partial configuration
 
 If you overrides only some parts of the configuration, then the keys that are not overiden will use the default configuration.

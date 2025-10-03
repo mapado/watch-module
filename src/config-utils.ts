@@ -20,6 +20,7 @@ type ConfigEntry = {
   includes?: string[];
   excludes?: string[];
   command?: string | Record<string, string>;
+  outDir?: string;
 };
 
 function getGlobalConfigPath(): string | void {

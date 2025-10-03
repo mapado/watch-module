@@ -75,17 +75,26 @@ function copyFiles(
 
   return fs
     .ensureDir(modulePath)
-    .then(() =>
-      fs.copy(path, modulePath, {
+    .then(() => {
+      const { outDir } = getModuleConfigEntry(path);
+
+      const realOutDir = outDir ? `${path}/${outDir}` : path;
+
+      debug(
+        moduleName,
+        `Copy files from "${realOutDir}" to "${modulePath}" (excluding node_modules and .git)`
+      );
+
+      fs.copy(realOutDir, modulePath, {
         filter: (src: string) => {
           const srcAppendSlash = `${src}/`;
           return (
-            !srcAppendSlash.startsWith(`${path}/node_modules/`) &&
-            !srcAppendSlash.startsWith(`${path}/.git/`)
+            !srcAppendSlash.startsWith(`${realOutDir}/node_modules/`) &&
+            !srcAppendSlash.startsWith(`${realOutDir}/.git/`)
           );
         },
-      })
-    )
+      });
+    })
     .then(() =>
       fs.writeFile(
         `${modulePath}/IS_UNDER_WATCH_MODULE`,

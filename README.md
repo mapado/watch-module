@@ -134,5 +134,5 @@ In another terminal, you can go in the `demo/app` folder and use the build this 
 
 ```sh
 cd demo/app
-node ../../build/watch-module.js ../package ../package2 -v
+node ../../bin/watch-module.js ../package ../package2 -v
 ```

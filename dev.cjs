@@ -16,13 +16,13 @@ function buildTimeout() {
         console.error(`exec error: ${error}`);
         return;
       }
-      if (stdout) {
-        console.log(stdout);
-        console.log('build success');
-      }
-
       if (stderr) {
         console.error(stderr);
+      } else {
+        if (stdout) {
+          console.log(stdout);
+        }
+        console.log('build success');
       }
     });
   }, 50);

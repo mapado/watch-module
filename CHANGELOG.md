@@ -1,8 +1,9 @@
 # CHANGELOG
 
-## Unreleased
+## 4.0.0
 
 - [BREAKING] Remove support for node < 16
+- outDir: allow to use a specific out directory [#60](https://github.com/mapado/watch-module/pull/60) by [@jdeniau](https://github.com/jdeniau)
 - [Internal] Upgrade to yarn 4
 
 ## 3.1.0
